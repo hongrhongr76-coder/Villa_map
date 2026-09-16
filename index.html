@@ -475,6 +475,42 @@
   .kakao-fallback-note{font-size:10.5px;color:#98A4C0;margin:6px 0 8px;line-height:1.45;}
   @media(max-width:640px){.kakao-map-canvas{height:390px}.kakao-map-key-row{flex-wrap:wrap}.kakao-map-key-row input{flex:1 1 100%}}
 
+
+  /* v7: 지도 전체화면 + 확대/상세 거래 보기 */
+  body.map-modal-open{overflow:hidden;}
+  .txn-map-toolbar{
+    display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;
+  }
+  .txn-map-toolbar button,.txn-map-toolbar a{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 11px;
+    background:rgba(255,255,255,.09);color:#fff;text-decoration:none;
+    font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .txn-map-toolbar button:hover,.txn-map-toolbar a:hover{border-color:var(--orange);color:#F4B48C;}
+  .txn-map-toolbar .primary{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .txn-map-wrap.map-fullscreen{
+    position:fixed;inset:0;z-index:999999;margin:0;padding:14px 14px 18px;
+    background:#16233F;overflow:auto;border-radius:0;
+    overscroll-behavior:contain;
+  }
+  .txn-map-wrap.map-fullscreen .txn-map-title{font-size:15px;margin-top:2px;}
+  .txn-map-wrap.map-fullscreen .txn-map-note{font-size:11.5px;}
+  .txn-map-wrap.map-fullscreen .txn-map-canvas,
+  .txn-map-wrap.map-fullscreen .kakao-map-canvas{
+    height:calc(100dvh - 205px) !important;min-height:430px;border-radius:12px;
+  }
+  .txn-map-wrap.map-fullscreen .kakao-info-card{width:min(330px,82vw);max-height:58dvh;}
+  .txn-map-wrap.map-fullscreen .mini-map-popup{max-height:58dvh;overflow:auto;min-width:min(300px,82vw);}
+  .txn-map-fullscreen-hint{font-size:10.5px;color:#F4B48C;margin-top:5px;font-weight:700;}
+  @media(max-width:640px){
+    .txn-map-toolbar{display:grid;grid-template-columns:1fr 1fr;}
+    .txn-map-toolbar button,.txn-map-toolbar a{width:100%;padding:10px 8px;font-size:11px;}
+    .txn-map-wrap.map-fullscreen{padding:10px;}
+    .txn-map-wrap.map-fullscreen .txn-map-canvas,
+    .txn-map-wrap.map-fullscreen .kakao-map-canvas{height:calc(100dvh - 220px) !important;min-height:360px;}
+  }
+
 </style>
 </head>
 <body>
@@ -769,6 +805,7 @@ function txnAddress(t){
 
 let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
 let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
+let currentKakaoMapPoints=[];
 
 function naverMapUrl(place){
   return 'https://map.naver.com/p/search/' + encodeURIComponent(place);
@@ -784,6 +821,10 @@ function escapeHtml(str){
 
 function cleanupDongMap(){
   miniMapState = null;
+  currentKakaoMapPoints=[];
+  document.body.classList.remove('map-modal-open');
+  const oldWrap=document.querySelector('.txn-map-wrap.map-fullscreen');
+  if(oldWrap) oldWrap.classList.remove('map-fullscreen');
   if(kakaoInfoOverlay){ try{ kakaoInfoOverlay.setMap(null); }catch(err){} }
   kakaoInfoOverlay=null;
   for(const o of kakaoOverlays){ try{ o.setMap(null); }catch(err){} }
@@ -989,6 +1030,7 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
     }
 
     if(progressEl) progressEl.style.width='100%';
+    currentKakaoMapPoints=[...points];
     fitKakaoMapToMarkers(kakaoMapInstance,points);
     let msg=`${d.fullName} 전체 실거래 ${totalTxns.toLocaleString()}건 중 ${shown.toLocaleString()}건을 카카오맵에 표시했어요. `;
     msg+='금액 마커 하나가 실거래 1건입니다. 금액을 누르면 건물명·주소·전용면적·거래금액·거래일자·층수·준공일자/년도가 모두 나옵니다.';
@@ -1013,6 +1055,30 @@ function kakaoMapSetupHtml(){
 }
 
 function bindKakaoMapSetup(d){}
+
+function toggleDongMapFullscreen(force){
+  const wrap=document.querySelector('.txn-map-wrap');
+  if(!wrap) return;
+  const next=typeof force==='boolean' ? force : !wrap.classList.contains('map-fullscreen');
+  wrap.classList.toggle('map-fullscreen',next);
+  document.body.classList.toggle('map-modal-open',next);
+  const btn=document.getElementById('expandDongMapBtn');
+  if(btn) btn.textContent=next?'✕ 전체화면 닫기':'⛶ 실거래 전체화면';
+  setTimeout(()=>{
+    try{
+      if(kakaoMapInstance){
+        kakaoMapInstance.relayout();
+        if(currentKakaoMapPoints.length) fitKakaoMapToMarkers(kakaoMapInstance,currentKakaoMapPoints);
+      }else if(miniMapState){
+        renderMiniMap();
+      }
+    }catch(err){}
+  },180);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && document.querySelector('.txn-map-wrap.map-fullscreen')) toggleDongMapFullscreen(false);
+});
 
 function shortMapPrice(manwon){
   if(manwon >= 10000){
@@ -1278,6 +1344,8 @@ function activateDetailCard(d, card){
   card.innerHTML=buildRichDetail(d);
   const tbtn=document.getElementById('dongTxnToggle');
   if(tbtn){tbtn.onclick=()=>{const wrap=document.getElementById('dongTxnWrap');const showing=wrap.style.display!=='none';wrap.style.display=showing?'none':'block';tbtn.textContent=showing?'📋 전체 실거래 내역 보기':'🙈 내역 접기';};}
+  const expandBtn=document.getElementById('expandDongMapBtn');
+  if(expandBtn) expandBtn.onclick=()=>toggleDongMapFullscreen();
   renderDongTxnMap(d);
 }
 
@@ -1492,7 +1560,12 @@ function buildRichDetail(d){
 
     <div class="txn-map-wrap">
       <div class="txn-map-title">🗺 ${d.fullName} 동별 실거래 지도</div>
-      <div class="txn-map-note">지도 금액표시를 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자가 모두 나옵니다.</div>
+      <div class="txn-map-toolbar">
+        <button type="button" class="primary" id="expandDongMapBtn">⛶ 실거래 전체화면</button>
+        <a href="${kakaoMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">📍 카카오맵 열기 ↗</a>
+      </div>
+      <div class="txn-map-note">금액표시 하나가 실거래 1건입니다. 금액을 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자를 자세히 볼 수 있습니다.</div>
+      <div class="txn-map-fullscreen-hint">손가락으로 확대·축소하고, 전체화면에서 동 전체 거래를 한눈에 볼 수 있어요.</div>
       ${priceLegendHtml()}
       <div id="dongTxnMap" class="txn-map-canvas"></div>
       <div id="dongTxnMapStatus" class="txn-map-status">지도를 준비하는 중이에요...</div><div class="txn-map-progress"><div id="dongTxnMapProgressBar" class="txn-map-progress-bar"></div></div>
