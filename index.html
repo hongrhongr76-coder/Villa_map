@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>빌라 실거래가 분석기 · 네이버지도</title>
+<title>빌라 실거래가 분석기 · 카카오맵</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
@@ -432,48 +432,48 @@
 
 
 
-  /* NAVER 지도 연동 */
-  .naver-map-setup{
+  /* Kakao 지도 연동 */
+  .kakao-map-setup{
     background:#fff;color:#20242C;border:1px solid #D9D4C9;border-radius:11px;
     padding:12px 13px;margin:10px 0 12px;
   }
-  .naver-map-setup-title{font-size:12.5px;font-weight:800;color:#16233F;margin-bottom:5px;}
-  .naver-map-setup-desc{font-size:10.5px;color:#767066;line-height:1.45;margin-bottom:8px;}
-  .naver-map-key-row{display:flex;gap:7px;align-items:center;}
-  .naver-map-key-row input{
+  .kakao-map-setup-title{font-size:12.5px;font-weight:800;color:#16233F;margin-bottom:5px;}
+  .kakao-map-setup-desc{font-size:10.5px;color:#767066;line-height:1.45;margin-bottom:8px;}
+  .kakao-map-key-row{display:flex;gap:7px;align-items:center;}
+  .kakao-map-key-row input{
     flex:1;min-width:0;padding:9px 10px;border:1px solid #D9D4C9;border-radius:8px;
     font-size:12px;font-family:inherit;color:#20242C;background:#fff;
   }
-  .naver-map-key-row button{
+  .kakao-map-key-row button{
     border:0;border-radius:8px;padding:9px 11px;background:#03C75A;color:#fff;
     font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;
   }
-  .naver-map-key-row .secondary{background:#6E7687;}
-  .naver-map-connected{
+  .kakao-map-key-row .secondary{background:#6E7687;}
+  .kakao-map-connected{
     display:flex;justify-content:space-between;align-items:center;gap:8px;
     background:rgba(3,199,90,.10);border:1px solid rgba(3,199,90,.30);border-radius:9px;
     padding:8px 10px;margin:8px 0 10px;color:#1B5935;font-size:11px;font-weight:700;
   }
-  .naver-map-connected button{border:0;background:transparent;color:#5E665F;text-decoration:underline;cursor:pointer;font-size:10.5px;}
-  .naver-map-canvas{width:100%;height:440px;border-radius:12px;overflow:hidden;background:#EEF2F7;border:1px solid rgba(255,255,255,.18);}
-  .naver-price-marker{
+  .kakao-map-connected button{border:0;background:transparent;color:#5E665F;text-decoration:underline;cursor:pointer;font-size:10.5px;}
+  .kakao-map-canvas{width:100%;height:440px;border-radius:12px;overflow:hidden;background:#EEF2F7;border:1px solid rgba(255,255,255,.18);}
+  .kakao-price-marker{
     transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;
     white-space:nowrap;user-select:none;
   }
-  .naver-price-marker-label{
+  .kakao-price-marker-label{
     color:#fff;font-size:10.5px;font-weight:900;padding:4px 7px;border-radius:8px;
     border:1px solid rgba(255,255,255,.95);box-shadow:0 2px 8px rgba(0,0,0,.28);
   }
-  .naver-price-marker-dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);margin-top:-1px;}
-  .naver-info-card{width:255px;max-height:320px;overflow:auto;background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;box-shadow:0 7px 22px rgba(0,0,0,.25);border:1px solid #E4E0D6;}
-  .naver-info-title{font-size:12.5px;font-weight:900;color:#16233F;margin-bottom:3px;}
-  .naver-info-sub{font-size:10.5px;color:#767066;margin-bottom:7px;}
-  .naver-info-item{padding:7px 0;border-top:1px solid #EEE9E0;font-size:11px;line-height:1.5;}
-  .naver-info-item:first-of-type{border-top:0;padding-top:0;}
-  .naver-info-price{font-size:12px;font-weight:900;color:#16233F;}
-  .naver-info-maplink{display:inline-block;margin-top:5px;color:#03A64B;text-decoration:none;font-size:10.5px;font-weight:800;}
-  .naver-fallback-note{font-size:10.5px;color:#98A4C0;margin:6px 0 8px;line-height:1.45;}
-  @media(max-width:640px){.naver-map-canvas{height:390px}.naver-map-key-row{flex-wrap:wrap}.naver-map-key-row input{flex:1 1 100%}}
+  .kakao-price-marker-dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);margin-top:-1px;}
+  .kakao-info-card{width:255px;max-height:320px;overflow:auto;background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;box-shadow:0 7px 22px rgba(0,0,0,.25);border:1px solid #E4E0D6;}
+  .kakao-info-title{font-size:12.5px;font-weight:900;color:#16233F;margin-bottom:3px;}
+  .kakao-info-sub{font-size:10.5px;color:#767066;margin-bottom:7px;}
+  .kakao-info-item{padding:7px 0;border-top:1px solid #EEE9E0;font-size:11px;line-height:1.5;}
+  .kakao-info-item:first-of-type{border-top:0;padding-top:0;}
+  .kakao-info-price{font-size:12px;font-weight:900;color:#16233F;}
+  .kakao-info-maplink{display:inline-block;margin-top:5px;color:#03A64B;text-decoration:none;font-size:10.5px;font-weight:800;}
+  .kakao-fallback-note{font-size:10.5px;color:#98A4C0;margin:6px 0 8px;line-height:1.45;}
+  @media(max-width:640px){.kakao-map-canvas{height:390px}.kakao-map-key-row{flex-wrap:wrap}.kakao-map-key-row input{flex:1 1 100%}}
 
 </style>
 </head>
@@ -486,7 +486,7 @@
       <span>Made by 가치경매</span>
     </div>
     <h1>빌라 실거래가 분석기</h1>
-    <p>국토부 연립다세대 매매 실거래가 엑셀을 올리면 동별 분석 + 네이버지도 전체 실거래를 보여줘요</p>
+    <p>국토부 연립다세대 매매 실거래가 엑셀을 올리면 동별 분석 + 카카오맵 전체 실거래를 보여줘요</p>
   </header>
 
   <div id="uploadSection">
@@ -767,8 +767,8 @@ function txnAddress(t){
 }
 
 
-let naverMapInstance=null, naverInfoWindow=null, naverMarkers=[];
-let naverMapLoadingPromise=null;
+let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
+let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
 
 function naverMapUrl(place){
   return 'https://map.naver.com/p/search/' + encodeURIComponent(place);
@@ -784,99 +784,100 @@ function escapeHtml(str){
 
 function cleanupDongMap(){
   miniMapState = null;
-  if(naverInfoWindow){ try{ naverInfoWindow.close(); }catch(err){} }
-  naverInfoWindow=null;
-  for(const m of naverMarkers){ try{ m.setMap(null); }catch(err){} }
-  naverMarkers=[];
-  naverMapInstance=null;
+  if(kakaoInfoOverlay){ try{ kakaoInfoOverlay.setMap(null); }catch(err){} }
+  kakaoInfoOverlay=null;
+  for(const o of kakaoOverlays){ try{ o.setMap(null); }catch(err){} }
+  kakaoOverlays=[];
+  kakaoMapInstance=null;
 }
 
+// Kakao Developers에서 발급한 JavaScript 키입니다.
+// 이 키는 등록한 JavaScript SDK 도메인에서만 동작하도록 제한되어 있습니다.
+const KAKAO_MAP_JS_KEY = 'a6474ae1c2b07f004d0ebc5dd68d98f6';
 
-// GitHub Pages에 올린 뒤 네이버 클라우드에서 발급받은 ncpKeyId(Client ID)를 아래에 한 번만 입력하세요.
-// Client Secret은 절대 여기에 넣지 않습니다.
-const NAVER_MAP_CLIENT_ID = 'YOUR_NAVER_MAP_CLIENT_ID';
-
-function getNaverMapKey(){
-  const key=String(NAVER_MAP_CLIENT_ID||'').trim();
-  return key==='YOUR_NAVER_MAP_CLIENT_ID' ? '' : key;
+function getKakaoMapKey(){
+  return String(KAKAO_MAP_JS_KEY||'').trim();
 }
 
-function loadNaverMapsApi(key){
+function loadKakaoMapsApi(key){
   key=String(key||'').trim();
-  if(!key) return Promise.reject(new Error('네이버 지도 Client ID가 아직 설정되지 않았습니다.'));
-  if(window.naver && window.naver.maps && window.naver.maps.Service) return Promise.resolve(window.naver.maps);
-  if(naverMapLoadingPromise) return naverMapLoadingPromise;
-  naverMapLoadingPromise=new Promise((resolve,reject)=>{
-    const cb='__villaNaverReady_'+Date.now();
+  if(!key) return Promise.reject(new Error('카카오맵 JavaScript 키가 설정되지 않았습니다.'));
+  if(window.kakao && window.kakao.maps && window.kakao.maps.services) return Promise.resolve(window.kakao.maps);
+  if(kakaoMapLoadingPromise) return kakaoMapLoadingPromise;
+  kakaoMapLoadingPromise=new Promise((resolve,reject)=>{
     const script=document.createElement('script');
-    let done=false;
-    const finish=(ok,val)=>{
-      if(done)return; done=true;
-      try{delete window[cb];}catch(err){window[cb]=undefined;}
-      if(ok) resolve(val); else {naverMapLoadingPromise=null; reject(val);}
-    };
-    window[cb]=()=>{
-      setTimeout(()=>{
-        if(window.naver&&window.naver.maps&&window.naver.maps.Service) finish(true,window.naver.maps);
-        else finish(false,new Error('네이버 지도 Geocoder 모듈을 불러오지 못했습니다.'));
-      },80);
-    };
     script.async=true;
-    script.defer=true;
-    script.src='https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId='+encodeURIComponent(key)+'&submodules=geocoder&callback='+encodeURIComponent(cb);
-    script.onerror=()=>finish(false,new Error('네이버 지도 API 연결에 실패했습니다. Client ID와 Web 서비스 URL 등록을 확인해주세요.'));
+    script.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(key)+'&autoload=false&libraries=services';
+    script.onload=()=>{
+      if(!window.kakao || !window.kakao.maps){ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 SDK를 불러오지 못했습니다.')); return; }
+      window.kakao.maps.load(()=>{
+        if(window.kakao.maps.services) resolve(window.kakao.maps);
+        else { kakaoMapLoadingPromise=null; reject(new Error('카카오맵 주소검색 모듈을 불러오지 못했습니다.')); }
+      });
+    };
+    script.onerror=()=>{ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 연결에 실패했습니다. JavaScript 키와 SDK 도메인 등록을 확인해주세요.')); };
     document.head.appendChild(script);
-    setTimeout(()=>finish(false,new Error('네이버 지도 API 응답이 없습니다.')),15000);
+    setTimeout(()=>{
+      if(!(window.kakao&&window.kakao.maps)){ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 API 응답이 없습니다.')); }
+    },15000);
   });
-  return naverMapLoadingPromise;
+  return kakaoMapLoadingPromise;
 }
 
-function naverMarkerColor(price){
+function kakaoMarkerColor(price){
   const b=priceBand(price);
   return b===1?'#2F6FED':b===2?'#1F9D6B':b===3?'#E59B24':b===4?'#E05A47':'#7A4FB3';
 }
 
-function buildNaverTxnInfo(t){
-  return `<div class="naver-info-card">
-    <div class="naver-info-title">${escapeHtml(t.building||'건물명 없음')}</div>
-    <div class="naver-info-sub">${escapeHtml(txnAddress(t))}</div>
-    <div class="naver-info-item">
+function buildKakaoTxnInfo(t){
+  return `<div class="kakao-info-card">
+    <div class="kakao-info-title">${escapeHtml(t.building||'건물명 없음')}</div>
+    <div class="kakao-info-sub">${escapeHtml(txnAddress(t))}</div>
+    <div class="kakao-info-item">
       <div><b>건물명</b> ${escapeHtml(t.building||'-')}</div>
       <div><b>주소</b> ${escapeHtml(txnAddress(t))}</div>
       <div><b>전용면적</b> ${t.area.toFixed(1)}㎡</div>
-      <div><b>거래금액</b> <span class="naver-info-price">${fmtPrice(t.price)}</span></div>
+      <div><b>거래금액</b> <span class="kakao-info-price">${fmtPrice(t.price)}</span></div>
       <div><b>거래일자</b> ${fmtDealDate(t)}</div>
       <div><b>층수</b> ${t.floor!==''&&t.floor!=null?t.floor+'층':'-'}</div>
       <div><b>준공일자/년도</b> ${fmtCompletion(t)}</div>
-      <a class="naver-info-maplink" href="${naverMapUrl(t.addressQuery||t.fullName)}" target="_blank" rel="noopener noreferrer">네이버지도에서 크게 보기 ↗</a>
+      <a class="kakao-info-maplink" href="${kakaoMapUrl(t.addressQuery||t.fullName)}" target="_blank" rel="noopener noreferrer">카카오맵에서 크게 보기 ↗</a>
     </div>
   </div>`;
 }
 
-function naverGeocodeOnce(query){
+function kakaoGeocodeOnce(query){
   return new Promise(resolve=>{
-    if(!window.naver?.maps?.Service){ resolve(null); return; }
-    naver.maps.Service.geocode({query:String(query||'').trim()}, function(status,response){
-      if(status!==naver.maps.Service.Status.OK){ resolve(null); return; }
-      const addr=response?.v2?.addresses?.[0];
-      if(!addr){ resolve(null); return; }
-      const lon=Number(addr.x), lat=Number(addr.y);
-      resolve(isFinite(lat)&&isFinite(lon)?{lat,lon}:null);
+    const q=String(query||'').trim();
+    if(!q || !kakaoGeocoder){ resolve(null); return; }
+    kakaoGeocoder.addressSearch(q,(result,status)=>{
+      if(status===kakao.maps.services.Status.OK && result && result[0]){
+        const lat=Number(result[0].y), lon=Number(result[0].x);
+        resolve(isFinite(lat)&&isFinite(lon)?{lat,lon}:null);
+        return;
+      }
+      if(!kakaoPlaces){ resolve(null); return; }
+      kakaoPlaces.keywordSearch(q,(data,status2)=>{
+        if(status2===kakao.maps.services.Status.OK && data && data[0]){
+          const lat=Number(data[0].y), lon=Number(data[0].x);
+          resolve(isFinite(lat)&&isFinite(lon)?{lat,lon}:null);
+        } else resolve(null);
+      });
     });
   });
 }
 
-async function naverGeocodeCandidates(candidates){
+async function kakaoGeocodeCandidates(candidates){
   for(const q0 of candidates){
     const q=String(q0||'').trim();
     if(!q) continue;
-    const cacheKey='naver:'+q;
+    const cacheKey='kakao:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
       if(cached) return cached;
       continue;
     }
-    const hit=await naverGeocodeOnce(q);
+    const hit=await kakaoGeocodeOnce(q);
     geoCache.set(cacheKey,hit);
     saveGeoCache();
     if(hit) return hit;
@@ -884,12 +885,12 @@ async function naverGeocodeCandidates(candidates){
   return null;
 }
 
-function fitNaverMapToMarkers(map, points){
+function fitKakaoMapToMarkers(map, points){
   if(!points.length)return;
-  if(points.length===1){map.setCenter(new naver.maps.LatLng(points[0].lat,points[0].lon));map.setZoom(17);return;}
-  const bounds=new naver.maps.LatLngBounds();
-  points.forEach(p=>bounds.extend(new naver.maps.LatLng(p.lat,p.lon)));
-  map.fitBounds(bounds,{top:80,right:50,bottom:60,left:50});
+  if(points.length===1){map.setCenter(new kakao.maps.LatLng(points[0].lat,points[0].lon));map.setLevel(3);return;}
+  const bounds=new kakao.maps.LatLngBounds();
+  points.forEach(p=>bounds.extend(new kakao.maps.LatLng(p.lat,p.lon)));
+  map.setBounds(bounds,60,50,60,50);
 }
 
 function jitterTxnPosition(lat,lon,index,total){
@@ -902,85 +903,93 @@ function jitterTxnPosition(lat,lon,index,total){
   return {lat:lat+dLat,lon:lon+dLon};
 }
 
-async function renderNaverDongMap(d, groups, statusEl, progressEl){
-  const key=getNaverMapKey();
+async function renderKakaoDongMap(d, groups, statusEl, progressEl){
+  const key=getKakaoMapKey();
   const host=document.getElementById('dongTxnMap');
   if(!host||!key) return false;
   try{
-    statusEl.textContent='네이버 지도를 연결하는 중이에요...';
-    await loadNaverMapsApi(key);
+    statusEl.textContent='카카오맵을 연결하는 중이에요...';
+    await loadKakaoMapsApi(key);
+    kakaoGeocoder=new kakao.maps.services.Geocoder();
+    kakaoPlaces=new kakao.maps.services.Places();
     host.innerHTML='';
-    host.classList.add('naver-map-canvas');
-    naverMapInstance=new naver.maps.Map(host,{
-      center:new naver.maps.LatLng(37.5665,126.9780),
-      zoom:14,
-      zoomControl:true,
-      zoomControlOptions:{position:naver.maps.Position.TOP_RIGHT}
+    host.classList.add('kakao-map-canvas');
+    kakaoMapInstance=new kakao.maps.Map(host,{
+      center:new kakao.maps.LatLng(37.5665,126.9780),
+      level:5
     });
-    naverInfoWindow=new naver.maps.InfoWindow({borderWidth:0,backgroundColor:'transparent',disableAnchor:true,pixelOffset:new naver.maps.Point(0,-8)});
+    kakaoMapInstance.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
+    kakao.maps.event.addListener(kakaoMapInstance,'click',()=>{
+      if(kakaoInfoOverlay){kakaoInfoOverlay.setMap(null);kakaoInfoOverlay=null;}
+    });
 
     const totalTxns=groups.reduce((s,g)=>s+g.items.length,0);
-    let geocoded=0,failed=0,shown=0;
+    let failed=0,shown=0;
     const points=[];
 
     for(let i=0;i<groups.length;i++){
       const g=groups[i];
       if(progressEl) progressEl.style.width=Math.round((i/groups.length)*100)+'%';
       statusEl.textContent=`${d.fullName} 주소 확인 중 ${i+1}/${groups.length} · 실거래 ${shown.toLocaleString()}/${totalTxns.toLocaleString()}건 표시`;
-      const geo=await naverGeocodeCandidates(g.candidates);
+      const geo=await kakaoGeocodeCandidates(g.candidates);
       if(!geo){failed++; continue;}
-      geocoded++;
 
       const ordered=[...g.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
       for(let j=0;j<ordered.length;j++){
         const t=ordered[j];
         const pos=jitterTxnPosition(geo.lat,geo.lon,j,ordered.length);
-        const color=naverMarkerColor(t.price);
-        const marker=new naver.maps.Marker({
-          position:new naver.maps.LatLng(pos.lat,pos.lon),
-          map:naverMapInstance,
-          title:`${t.building||''} ${fmtPrice(t.price)} ${fmtDealDate(t)}`,
-          zIndex:1000+j,
-          icon:{
-            content:`<div class="naver-price-marker"><div class="naver-price-marker-label" style="background:${color}">${shortMapPrice(t.price)}</div><div class="naver-price-marker-dot" style="background:${color}"></div></div>`,
-            anchor:new naver.maps.Point(0,0)
-          }
+        const color=kakaoMarkerColor(t.price);
+        const markerEl=document.createElement('div');
+        markerEl.className='kakao-price-marker';
+        markerEl.innerHTML=`<div class="kakao-price-marker-label" style="background:${color}">${shortMapPrice(t.price)}</div><div class="kakao-price-marker-dot" style="background:${color}"></div>`;
+        const markerPos=new kakao.maps.LatLng(pos.lat,pos.lon);
+        const overlay=new kakao.maps.CustomOverlay({
+          position:markerPos,content:markerEl,yAnchor:1,zIndex:1000+j
         });
-        naver.maps.Event.addListener(marker,'click',()=>{
-          naverInfoWindow.setContent(buildNaverTxnInfo(t));
-          naverInfoWindow.open(naverMapInstance,marker);
+        overlay.setMap(kakaoMapInstance);
+        markerEl.addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          if(kakaoInfoOverlay) kakaoInfoOverlay.setMap(null);
+          const infoEl=document.createElement('div');
+          infoEl.innerHTML=buildKakaoTxnInfo(t);
+          infoEl.addEventListener('click',e=>e.stopPropagation());
+          kakaoInfoOverlay=new kakao.maps.CustomOverlay({
+            position:markerPos,content:infoEl,yAnchor:1.08,zIndex:99999
+          });
+          kakaoInfoOverlay.setMap(kakaoMapInstance);
+          kakaoMapInstance.panTo(markerPos);
         });
-        naverMarkers.push(marker);
+        kakaoOverlays.push(overlay);
         points.push(pos);
         shown++;
       }
-      if(i<groups.length-1) await sleep(120);
+      if(i<groups.length-1) await sleep(80);
     }
 
     if(progressEl) progressEl.style.width='100%';
-    fitNaverMapToMarkers(naverMapInstance,points);
-    let msg=`${d.fullName} 전체 실거래 ${totalTxns.toLocaleString()}건 중 ${shown.toLocaleString()}건을 네이버지도에 표시했어요. `;
+    fitKakaoMapToMarkers(kakaoMapInstance,points);
+    let msg=`${d.fullName} 전체 실거래 ${totalTxns.toLocaleString()}건 중 ${shown.toLocaleString()}건을 카카오맵에 표시했어요. `;
     msg+='금액 마커 하나가 실거래 1건입니다. 금액을 누르면 건물명·주소·전용면적·거래금액·거래일자·층수·준공일자/년도가 모두 나옵니다.';
     if(failed) msg+=` 좌표를 찾지 못한 주소 ${failed.toLocaleString()}곳은 제외됐어요.`;
     statusEl.textContent=msg;
     return true;
   }catch(err){
-    statusEl.innerHTML='네이버 지도 연결에 실패했어요. <b>'+escapeHtml(err.message||String(err))+'</b><br>Client ID와 NAVER Cloud의 Web 서비스 URL 등록을 확인해주세요.';
+    statusEl.innerHTML='카카오맵 연결에 실패했어요. <b>'+escapeHtml(err.message||String(err))+'</b><br>JavaScript 키와 JavaScript SDK 도메인 등록을 확인해주세요.';
     return false;
   }
 }
 
-function naverMapSetupHtml(){
-  if(getNaverMapKey()){
-    return `<div class="naver-map-connected">✅ 네이버 지도 연결됨 · 선택한 동의 모든 실거래를 거래 1건당 마커 1개로 표시합니다.</div>`;
+function kakaoMapSetupHtml(){
+  if(getKakaoMapKey()){
+    return `<div class="kakao-map-connected">✅ 카카오맵 연결 설정 완료 · 선택한 동의 모든 실거래를 거래 1건당 마커 1개로 표시합니다.</div>`;
   }
-  return `<div class="naver-map-setup" id="naverMapSetup">
-    <div class="naver-map-setup-title">네이버 지도 설정이 아직 완료되지 않았어요</div>
-    <div class="naver-map-setup-desc">GitHub Pages 주소를 NAVER Cloud의 Web 서비스 URL로 등록한 뒤, 이 파일 상단의 <b>NAVER_MAP_CLIENT_ID</b>에 ncpKeyId(Client ID)를 넣으면 모든 사용자에게 네이버 지도가 자동으로 표시됩니다. Client Secret은 넣지 마세요.</div>
+  return `<div class="kakao-map-setup" id="kakaoMapSetup">
+    <div class="kakao-map-setup-title">카카오맵 설정이 아직 완료되지 않았어요</div>
+    <div class="kakao-map-setup-desc">Kakao Developers의 JavaScript 키와 SDK 도메인을 확인해주세요.</div>
   </div>`;
 }
 
-function bindNaverMapSetup(d){}
+function bindKakaoMapSetup(d){}
 
 function shortMapPrice(manwon){
   if(manwon >= 10000){
@@ -1104,7 +1113,7 @@ function buildMarkerPopup(group){
         <div>층수 <b>${t.floor!==''&&t.floor!=null?t.floor+'층':'-'}</b></div>
         <div>준공일자/년도 <b>${fmtCompletion(t)}</b></div>
         <div class="mini-map-popup-price price-text-${priceBand(t.price)}">거래금액 ${fmtPrice(t.price)}</div>
-        <a class="map-popup-link" href="${naverMapUrl(t.addressQuery || t.fullName)}" target="_blank" rel="noopener noreferrer">이 실거래 위치 지도보기 ↗</a>
+        <a class="map-popup-link" href="${kakaoMapUrl(t.addressQuery || t.fullName)}" target="_blank" rel="noopener noreferrer">이 실거래 위치 카카오맵 보기 ↗</a>
       </div>
     `).join('')}
   `;
@@ -1203,17 +1212,17 @@ async function renderDongTxnMap(d){
   }
   const groups=[...groupedMap.values()];
 
-  if(getNaverMapKey()){
-    const ok=await renderNaverDongMap(d,groups,statusEl,progressEl);
+  if(getKakaoMapKey()){
+    const ok=await renderKakaoDongMap(d,groups,statusEl,progressEl);
     if(ok)return;
   }
 
-  // Client ID가 없거나 네이버 지도 연결 실패 시 기존 간편지도를 계속 사용할 수 있게 함
-  mapEl.classList.remove('naver-map-canvas');
-  mapEl.innerHTML='<div class="mini-map-tiles"></div><div class="mini-map-markers"></div><div class="mini-map-controls"><button type="button" class="mini-map-control" data-map-zoom="in">+</button><button type="button" class="mini-map-control" data-map-zoom="out">−</button></div><div class="mini-map-credit">© OpenStreetMap · NAVER 연결 전 임시지도</div>';
+  // 카카오맵 연결 실패 시 기존 간편지도를 계속 사용할 수 있게 함
+  mapEl.classList.remove('kakao-map-canvas');
+  mapEl.innerHTML='<div class="mini-map-tiles"></div><div class="mini-map-markers"></div><div class="mini-map-controls"><button type="button" class="mini-map-control" data-map-zoom="in">+</button><button type="button" class="mini-map-control" data-map-zoom="out">−</button></div><div class="mini-map-credit">© OpenStreetMap · 카카오맵 연결 실패 시 임시지도</div>';
   miniMapState={el:mapEl,points:[],zoom:14,centerX:lonToWorldX(126.978,14),centerY:latToWorldY(37.5665,14)};
   setupMiniMapInteractions(miniMapState);renderMiniMap();
-  statusEl.textContent=getNaverMapKey()?`${d.fullName} 네이버 지도 연결 실패로 임시지도를 표시합니다.`:`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 · 사이트 관리자 설정이 완료되면 이 지도가 네이버 지도로 바뀝니다.`;
+  statusEl.textContent=getKakaoMapKey()?`${d.fullName} 카카오맵 연결 실패로 임시지도를 표시합니다.`:`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 · 카카오맵 설정을 확인해주세요.`;
 
   let success=0,failed=0;
   for(let i=0;i<groups.length;i++){
@@ -1228,7 +1237,7 @@ async function renderDongTxnMap(d){
   if(progressEl)progressEl.style.width='100%';
   if(success){fitMiniMap(miniMapState);renderMiniMap();}
   let msg=`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 중 ${success.toLocaleString()}개 주소 위치를 지도에 표시했어요. `;
-  msg+=getNaverMapKey()?'네이버 지도 인증을 확인해주세요.':'위의 네이버 지도 Client ID를 등록하면 같은 실거래가 네이버 지도에 표시됩니다.';
+  msg+=getKakaoMapKey()?'카카오맵 JavaScript 키와 SDK 도메인 설정을 확인해주세요.':'카카오맵 설정을 확인해주세요.';
   if(failed)msg+=` 위치를 찾지 못한 주소 ${failed.toLocaleString()}곳은 아래 전체 실거래표에서 확인할 수 있어요.`;
   statusEl.textContent=msg;
 }
@@ -1407,7 +1416,7 @@ function buildRichDetail(d){
     .sort((a,b)=>(b.month-a.month) || ((Number(b.day)||0)-(Number(a.day)||0)));
 
   const summaryCards = txns.map(t=>`
-    <a class="txn-summary-item" href="${naverMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer" title="이 실거래 위치를 지도에서 보기">
+    <a class="txn-summary-item" href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer" title="이 실거래 위치를 지도에서 보기">
       <div class="txn-summary-row"><span class="txn-summary-label">건물명</span><span class="txn-summary-value">${escapeHtml(t.building || '-')}</span></div>
       <div class="txn-summary-row address"><span class="txn-summary-label">주소</span><span class="txn-summary-value">${escapeHtml(txnAddress(t))}</span></div>
       <div class="txn-summary-row"><span class="txn-summary-label">전용면적</span><span class="txn-summary-value">${t.area.toFixed(1)}㎡</span></div>
@@ -1420,15 +1429,15 @@ function buildRichDetail(d){
   `).join('');
 
   const rows = txns.map(t=>`
-    <tr class="click-map-row" data-map-url="${naverMapUrl(t.addressQuery || d.fullName)}" title="클릭하면 이 실거래 위치가 지도에서 열립니다">
+    <tr class="click-map-row" data-map-url="${kakaoMapUrl(t.addressQuery || d.fullName)}" title="클릭하면 이 실거래 위치가 지도에서 열립니다">
       <td data-label="건물명">${escapeHtml(t.building || '-')}</td>
-      <td data-label="주소"><a class="txn-address-link" href="${naverMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(txnAddress(t))} 📍</a></td>
+      <td data-label="주소"><a class="txn-address-link" href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(txnAddress(t))} 📍</a></td>
       <td data-label="전용면적">${t.area.toFixed(1)}㎡</td>
       <td data-label="거래금액"><b class="price-text-${priceBand(t.price)}">${fmtPrice(t.price)}</b></td>
       <td data-label="층수">${t.floor!=='' && t.floor!=null ? t.floor+'층' : '-'}</td>
       <td data-label="준공일자/년도">${fmtCompletion(t)}</td>
       <td data-label="거래일자"><b>${fmtDealDate(t)}</b></td>
-      <td data-label="지도" class="txn-map-actions"><span><a href="${naverMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">네이버</a><a href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">카카오</a></span></td>
+      <td data-label="지도" class="txn-map-actions"><span><a href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">카카오</a><a href="${naverMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">네이버</a></span></td>
     </tr>
   `).join('');
 
@@ -1437,8 +1446,8 @@ function buildRichDetail(d){
   return `
     <div class="dong-name">${d.fullName} <span style="color:#F4B48C;font-size:12px;">실거래 지도</span></div>
     <div class="map-actions">
-      <a class="map-btn" href="${naverMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">🗺 지역 네이버지도</a>
       <a class="map-btn" href="${kakaoMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">📍 지역 카카오맵</a>
+      <a class="map-btn" href="${naverMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">🗺 지역 네이버지도</a>
     </div>
     <div class="detail-grid detail-grid-5">
       <div><div class="k">거래건수</div><div class="v"><em>${d.count.toLocaleString()}</em>건</div></div>
@@ -1448,7 +1457,7 @@ function buildRichDetail(d){
       <div><div class="k">평균 집 크기</div><div class="v">${d.avgArea.toFixed(1)}㎡</div></div>
     </div>
 
-    ${naverMapSetupHtml()}
+    ${kakaoMapSetupHtml()}
 
     <div class="txn-map-wrap">
       <div class="txn-map-title">🗺 ${d.fullName} 동별 실거래 지도</div>
