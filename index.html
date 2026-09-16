@@ -321,17 +321,27 @@
   .mini-map-tiles,.mini-map-markers{position:absolute;inset:0;overflow:hidden;}
   .mini-map-tile{position:absolute;width:256px;height:256px;max-width:none;}
   .mini-map-marker{
-    position:absolute; transform:translate(-50%,-100%); z-index:8; cursor:pointer;
-    display:flex;flex-direction:column;align-items:center;
+    position:absolute; transform:translate(-50%,-100%); z-index:40; cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;position:absolute;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
+  }
+  /* 손가락으로 누르기 쉬운 48px 터치 영역 */
+  .mini-map-marker::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:48px;height:48px;border-radius:24px;background:transparent;
   }
   .mini-map-marker-label{
-    background:#E8742C;color:#fff;font-size:10.5px;font-weight:800;
-    padding:4px 6px;border-radius:7px;white-space:nowrap;
-    box-shadow:0 2px 7px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.85);
+    position:relative;z-index:2;background:#E8742C;color:#fff;font-size:12px;font-weight:900;
+    padding:6px 9px;border-radius:9px;white-space:nowrap;line-height:1;
+    box-shadow:0 3px 10px rgba(0,0,0,.30);border:2px solid #fff;
   }
   .mini-map-marker-dot{
-    width:12px;height:12px;background:#E8742C;border:2px solid #fff;border-radius:50%;
-    box-shadow:0 2px 5px rgba(0,0,0,.25);margin-top:-1px;
+    position:relative;z-index:2;width:16px;height:16px;background:#E8742C;border:3px solid #fff;border-radius:50%;
+    box-shadow:0 2px 7px rgba(0,0,0,.32);margin-top:-2px;
+  }
+  .mini-map-marker:hover .mini-map-marker-label,.mini-map-marker:active .mini-map-marker-label{
+    transform:scale(1.08);
   }
   .price-band-1 .mini-map-marker-label,.price-dot-1{background:#2F6FED!important;}
   .price-band-2 .mini-map-marker-label,.price-dot-2{background:#1F9D6B!important;}
@@ -356,11 +366,13 @@
   .mini-map-popup-date{font-size:10.5px;color:#E8742C;font-weight:800;}
   .mini-map-popup-price{font-size:12px;color:#16233F;font-weight:800;}
   .mini-map-popup .price-text-1{color:#245AC7!important}.mini-map-popup .price-text-2{color:#14764F!important}.mini-map-popup .price-text-3{color:#A66A00!important}.mini-map-popup .price-text-4{color:#B23E2E!important}.mini-map-popup .price-text-5{color:#653695!important}
-  .mini-map-controls{position:absolute;right:9px;top:9px;z-index:20;display:flex;flex-direction:column;gap:5px;}
+  .mini-map-controls{position:absolute;right:9px;top:9px;z-index:60;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
   .mini-map-control{
-    width:34px;height:34px;border:1px solid #D8D2C7;background:#fff;color:#16233F;
-    border-radius:8px;font-size:18px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;
+    min-width:40px;height:40px;border:1px solid #D8D2C7;background:#fff;color:#16233F;
+    border-radius:10px;font-size:20px;font-weight:900;box-shadow:0 2px 9px rgba(0,0,0,.18);cursor:pointer;
+    touch-action:manipulation;
   }
+  .mini-map-control.fit{width:auto;padding:0 10px;font-size:11px;white-space:nowrap;}
   .mini-map-credit{position:absolute;right:6px;bottom:4px;z-index:15;background:rgba(255,255,255,.82);padding:1px 4px;border-radius:4px;font-size:8.5px;color:#555;}
   .txn-map-status{font-size:11px;color:#C7CEDE;margin-top:8px;line-height:1.45;}
   .txn-map-progress{height:5px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:7px;}
@@ -458,13 +470,19 @@
   .kakao-map-canvas{width:100%;height:440px;border-radius:12px;overflow:hidden;background:#EEF2F7;border:1px solid rgba(255,255,255,.18);}
   .kakao-price-marker{
     transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;
-    white-space:nowrap;user-select:none;
+    white-space:nowrap;user-select:none;position:relative;touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
+  }
+  .kakao-price-marker::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:48px;height:48px;border-radius:24px;background:transparent;
   }
   .kakao-price-marker-label{
-    color:#fff;font-size:10.5px;font-weight:900;padding:4px 7px;border-radius:8px;
-    border:1px solid rgba(255,255,255,.95);box-shadow:0 2px 8px rgba(0,0,0,.28);
+    position:relative;z-index:2;color:#fff;font-size:12px;font-weight:900;padding:6px 9px;border-radius:9px;
+    border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.30);line-height:1;
   }
-  .kakao-price-marker-dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.28);margin-top:-1px;}
+  .kakao-price-marker-dot{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.32);margin-top:-2px;}
+  .kakao-price-marker:hover .kakao-price-marker-label,.kakao-price-marker:active .kakao-price-marker-label{transform:scale(1.08);}
   .kakao-info-card{width:255px;max-height:320px;overflow:auto;background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;box-shadow:0 7px 22px rgba(0,0,0,.25);border:1px solid #E4E0D6;}
   .kakao-info-title{font-size:12.5px;font-weight:900;color:#16233F;margin-bottom:3px;}
   .kakao-info-sub{font-size:10.5px;color:#767066;margin-bottom:7px;}
@@ -476,7 +494,7 @@
   @media(max-width:640px){.kakao-map-canvas{height:390px}.kakao-map-key-row{flex-wrap:wrap}.kakao-map-key-row input{flex:1 1 100%}}
 
 
-  /* v7: 지도 전체화면 + 확대/상세 거래 보기 */
+  /* v8: 깔끔한 분석지도 + 큰 실거래 터치영역 + 전체거래 재맞춤 */
   body.map-modal-open{overflow:hidden;}
   .txn-map-toolbar{
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;
@@ -1243,14 +1261,14 @@ function renderMiniMap(){
       const img=document.createElement('img');
       img.className='mini-map-tile';
       img.draggable=false;
-      img.src=`https://tile.openstreetmap.org/${z}/${wrapX}/${ty}.png`;
+      img.src=`https://a.basemaps.cartocdn.com/light_nolabels/${z}/${wrapX}/${ty}.png`;
       img.style.left=(tx*256-left)+'px'; img.style.top=(ty*256-top)+'px';
       tileLayer.appendChild(img);
     }
   }
   for(const p of state.points){
     const x=lonToWorldX(p.lon,z)-left, y=latToWorldY(p.lat,z)-top;
-    if(x<-40||y<-40||x>w+40||y>h+40) continue;
+    if(x<-90||y<-90||x>w+90||y>h+90) continue;
     const latest=[...p.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)))[0];
     const mk=document.createElement('div');
     const band=priceBand(latest.price);
@@ -1279,9 +1297,10 @@ function setupMiniMapInteractions(state){
   el.onpointermove=(e)=>{if(!dragging)return;state.centerX=cx-(e.clientX-sx);state.centerY=cy-(e.clientY-sy);renderMiniMap();};
   el.onpointerup=()=>{dragging=false;};
   el.onclick=()=>{const p=el.querySelector('.mini-map-popup');if(p)p.remove();};
-  const zin=el.querySelector('[data-map-zoom="in"]'),zout=el.querySelector('[data-map-zoom="out"]');
-  if(zin) zin.onclick=(e)=>{e.stopPropagation();if(state.zoom<19){const lon=worldXToLon(state.centerX,state.zoom),lat=worldYToLat(state.centerY,state.zoom);state.zoom++;state.centerX=lonToWorldX(lon,state.zoom);state.centerY=latToWorldY(lat,state.zoom);renderMiniMap();}};
+  const zin=el.querySelector('[data-map-zoom="in"]'),zout=el.querySelector('[data-map-zoom="out"]'),fit=el.querySelector('[data-map-fit="all"]');
+  if(zin) zin.onclick=(e)=>{e.stopPropagation();if(state.zoom<20){const lon=worldXToLon(state.centerX,state.zoom),lat=worldYToLat(state.centerY,state.zoom);state.zoom++;state.centerX=lonToWorldX(lon,state.zoom);state.centerY=latToWorldY(lat,state.zoom);renderMiniMap();}};
   if(zout) zout.onclick=(e)=>{e.stopPropagation();if(state.zoom>10){const lon=worldXToLon(state.centerX,state.zoom),lat=worldYToLat(state.centerY,state.zoom);state.zoom--;state.centerX=lonToWorldX(lon,state.zoom);state.centerY=latToWorldY(lat,state.zoom);renderMiniMap();}};
+  if(fit) fit.onclick=(e)=>{e.stopPropagation();fitMiniMap(state);renderMiniMap();};
 }
 
 async function renderDongTxnMap(d){
@@ -1308,10 +1327,10 @@ async function renderDongTxnMap(d){
 
   // 카카오맵 연결 실패 시 기존 간편지도를 계속 사용할 수 있게 함
   mapEl.classList.remove('kakao-map-canvas');
-  mapEl.innerHTML='<div class="mini-map-tiles"></div><div class="mini-map-markers"></div><div class="mini-map-controls"><button type="button" class="mini-map-control" data-map-zoom="in">+</button><button type="button" class="mini-map-control" data-map-zoom="out">−</button></div><div class="mini-map-credit">© OpenStreetMap · 카카오맵 연결 실패 시 임시지도</div>';
+  mapEl.innerHTML='<div class="mini-map-tiles"></div><div class="mini-map-markers"></div><div class="mini-map-controls"><button type="button" class="mini-map-control" data-map-zoom="in" aria-label="확대">+</button><button type="button" class="mini-map-control" data-map-zoom="out" aria-label="축소">−</button><button type="button" class="mini-map-control fit" data-map-fit="all">전체거래 보기</button></div><div class="mini-map-credit">© OpenStreetMap © CARTO · 상점명 숨김 분석지도</div>';
   miniMapState={el:mapEl,points:[],zoom:14,centerX:lonToWorldX(126.978,14),centerY:latToWorldY(37.5665,14)};
   setupMiniMapInteractions(miniMapState);renderMiniMap();
-  statusEl.textContent=getKakaoMapKey()?`${d.fullName} 카카오맵 연결 실패로 임시지도를 표시합니다.`:`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 · 카카오맵 설정을 확인해주세요.`;
+  statusEl.textContent=getKakaoMapKey()?`${d.fullName} · 상점/가게 이름을 뺀 깔끔한 분석지도로 표시합니다. 금액표시를 눌러 상세 거래를 보세요.`:`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 · 깔끔한 분석지도로 표시합니다.`;
 
   let success=0,failed=0;
   for(let i=0;i<groups.length;i++){
@@ -1565,7 +1584,7 @@ function buildRichDetail(d){
         <a href="${kakaoMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">📍 카카오맵 열기 ↗</a>
       </div>
       <div class="txn-map-note">금액표시 하나가 실거래 1건입니다. 금액을 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자를 자세히 볼 수 있습니다.</div>
-      <div class="txn-map-fullscreen-hint">손가락으로 확대·축소하고, 전체화면에서 동 전체 거래를 한눈에 볼 수 있어요.</div>
+      <div class="txn-map-fullscreen-hint">상점·음식점·옷가게 이름은 숨겼어요. 금액표시를 크게 만들어 누르기 쉽게 했고, 확대 후 거래가 화면 밖으로 나가면 “전체거래 보기”를 누르세요.</div>
       ${priceLegendHtml()}
       <div id="dongTxnMap" class="txn-map-canvas"></div>
       <div id="dongTxnMapStatus" class="txn-map-status">지도를 준비하는 중이에요...</div><div class="txn-map-progress"><div id="dongTxnMapProgressBar" class="txn-map-progress-bar"></div></div>
