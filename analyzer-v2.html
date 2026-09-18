@@ -332,13 +332,13 @@
     width:48px;height:48px;border-radius:24px;background:transparent;
   }
   .mini-map-marker-label{
-    position:relative;z-index:2;background:#E8742C;color:#fff;font-size:10.5px;font-weight:900;
-    padding:4px 7px;border-radius:8px;white-space:nowrap;line-height:1;
-    box-shadow:0 2px 8px rgba(0,0,0,.28);border:2px solid #fff;
+    position:relative;z-index:2;background:#E8742C;color:#fff;font-size:8.5px;font-weight:900;
+    padding:3px 5px;border-radius:6px;white-space:nowrap;line-height:1;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);border:1.5px solid #fff;
   }
   .mini-map-marker-dot{
-    position:relative;z-index:2;width:12px;height:12px;background:#E8742C;border:2px solid #fff;border-radius:50%;
-    box-shadow:0 2px 6px rgba(0,0,0,.28);margin-top:-1px;
+    position:relative;z-index:2;width:8px;height:8px;background:#E8742C;border:1.5px solid #fff;border-radius:50%;
+    box-shadow:0 1px 4px rgba(0,0,0,.26);margin-top:-1px;
   }
   .mini-map-marker:hover .mini-map-marker-label,.mini-map-marker:active .mini-map-marker-label{
     transform:scale(1.08);
@@ -478,10 +478,10 @@
     width:48px;height:48px;border-radius:24px;background:transparent;
   }
   .kakao-price-marker-label{
-    position:relative;z-index:2;color:#fff;font-size:12px;font-weight:900;padding:6px 9px;border-radius:9px;
-    border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.30);line-height:1;
+    position:relative;z-index:2;color:#fff;font-size:9px;font-weight:900;padding:3px 5px;border-radius:6px;
+    border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.26);line-height:1;
   }
-  .kakao-price-marker-dot{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.32);margin-top:-2px;}
+  .kakao-price-marker-dot{position:relative;z-index:2;width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);margin-top:-1px;}
   .kakao-price-marker:hover .kakao-price-marker-label,.kakao-price-marker:active .kakao-price-marker-label{transform:scale(1.08);}
   .kakao-info-card{width:255px;max-height:320px;overflow:auto;background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;box-shadow:0 7px 22px rgba(0,0,0,.25);border:1px solid #E4E0D6;}
   .kakao-info-title{font-size:12.5px;font-weight:900;color:#16233F;margin-bottom:3px;}
@@ -544,15 +544,15 @@
       min-height:620px;
     }
     .kakao-price-marker-label{
-      font-size:14px;
-      padding:8px 11px;
-      border-radius:10px;
-      border-width:2px;
+      font-size:10px;
+      padding:4px 6px;
+      border-radius:7px;
+      border-width:1.5px;
     }
     .kakao-price-marker-dot{
-      width:18px;
-      height:18px;
-      border-width:3px;
+      width:10px;
+      height:10px;
+      border-width:2px;
     }
     .kakao-price-marker::before{
       width:58px;
@@ -583,7 +583,8 @@
       height:64vh !important;
       min-height:480px;
     }
-    .kakao-price-marker-label{font-size:13px;padding:7px 10px;}
+    .kakao-price-marker-label{font-size:8.5px;padding:3px 5px;border-radius:6px;border-width:1.5px;}
+    .kakao-price-marker-dot{width:8px;height:8px;border-width:1.5px;margin-top:-1px;}
     .kakao-info-card{width:min(310px,84vw);max-height:56vh;padding:12px 13px;}
     .kakao-info-title{font-size:14px;}
     .kakao-info-item{font-size:12px;line-height:1.6;}
@@ -1335,7 +1336,7 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
 
 function kakaoMapSetupHtml(){
   if(getKakaoMapKey()){
-    return `<div class="kakao-map-connected">✅ 카카오맵 연결 설정 완료 · 선택한 동의 모든 실거래를 거래 1건당 마커 1개로 표시합니다.</div>`;
+    return ``;
   }
   return `<div class="kakao-map-setup" id="kakaoMapSetup">
     <div class="kakao-map-setup-title">카카오맵 설정이 아직 완료되지 않았어요</div>
