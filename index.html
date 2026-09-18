@@ -660,6 +660,27 @@
     .kakao-info-maplink{font-size:13.5px !important;}
   }
 
+
+  /* v17: 선택 동 중심/주소검색 보강 + 지도 레이아웃 정상화 */
+  @media (min-width:900px){
+    .txn-map-wrap{
+      width:100% !important;
+      margin-left:0 !important;
+      transform:none !important;
+    }
+    .txn-map-canvas,
+    .kakao-map-canvas{
+      height:540px !important;
+      min-height:540px !important;
+    }
+  }
+  .txn-map-status{
+    margin:8px 0 6px !important;
+    font-size:12px !important;
+    line-height:1.5 !important;
+    color:#D5DCEC !important;
+  }
+
 </style>
 </head>
 <body>
@@ -866,10 +887,11 @@ function processRows(raw, fileName){
     }
   }
   const topRegionRe=/^(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|경기도|강원특별자치도|충청북도|충청남도|전북특별자치도|전라남도|경상북도|경상남도|제주특별자치도)(\s|$)/;
+  const validSidoHint = topRegionRe.test(String(sidoHint||'').trim()) ? String(sidoHint).trim() : '';
   const normalizeRegion=(value)=>{
     let v=String(value ?? '').replace(/\s+/g,' ').trim();
     if(!v) return '';
-    if(sidoHint && !topRegionRe.test(v)) v=sidoHint+' '+v;
+    if(validSidoHint && !topRegionRe.test(v)) v=validSidoHint+' '+v;
     return v.replace(/\s+/g,' ').trim();
   };
 
@@ -1093,7 +1115,7 @@ function kakaoGeocodeOnce(query){
 async function kakaoGeocodeCandidates(candidates){
   const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
   for(const q of unique){
-    const cacheKey='kakao-v13:'+q;
+    const cacheKey='kakao-v17:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
       // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
@@ -1115,12 +1137,12 @@ async function findSelectedDongSeed(d, groups){
   const region=first && first.regionQuery ? first.regionQuery : '';
   const candidates=[];
 
-  // 1순위: 실제 첫 거래 주소. 정확한 화곡동/중곡동 위치로 바로 이동시킵니다.
-  if(firstGroup && firstGroup.candidates) candidates.push(...firstGroup.candidates);
-  // 2순위: 국토부 시군구 원문(예: 서울특별시 강서구 화곡동)
+  // 선택한 동 자체를 가장 먼저 찾습니다.
   if(region) candidates.push(region);
-  // 3순위: 화면에 표시되는 구+동
   candidates.push(d.fullName);
+
+  // 그 다음 첫 실거래의 도로명/지번 주소로 보정합니다.
+  if(firstGroup && firstGroup.candidates) candidates.push(...firstGroup.candidates);
 
   return kakaoGeocodeCandidates(candidates);
 }
@@ -1556,7 +1578,7 @@ async function renderDongTxnMap(d){
   for(const t of txns){
     const key=(t.lotQuery||t.roadQuery||t.addressQuery||t.fullName).trim();
     const label=t.road?`${t.gu} ${t.dong} · ${t.road}`:(t.lot?`${t.gu} ${t.dong} ${t.lot}`:t.fullName);
-    if(!groupedMap.has(key)) groupedMap.set(key,{key,label,items:[],candidates:[t.lotQuery,t.roadQuery,t.addressQuery,(t.building?`${t.regionQuery||t.fullName} ${t.building}`:''),t.regionQuery,t.fullName]});
+    if(!groupedMap.has(key)) groupedMap.set(key,{key,label,items:[],candidates:[t.roadQuery,t.lotQuery,t.addressQuery,(t.building?`${t.regionQuery||t.fullName} ${t.building}`:''),t.regionQuery,t.fullName]});
     groupedMap.get(key).items.push(t);
   }
   const groups=[...groupedMap.values()];
@@ -1829,8 +1851,9 @@ function buildRichDetail(d){
       <div class="txn-map-note">금액표시 하나가 실거래 1건입니다. 금액을 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자를 자세히 볼 수 있습니다.</div>
       <div class="txn-map-fullscreen-hint">상점·음식점·옷가게 이름은 숨겼어요. 금액표시를 크게 만들어 누르기 쉽게 했고, 확대 후 거래가 화면 밖으로 나가면 “전체거래 보기”를 누르세요.</div>
       ${priceLegendHtml()}
+      <div id="dongTxnMapStatus" class="txn-map-status">지도를 준비하는 중이에요...</div>
+      <div class="txn-map-progress"><div id="dongTxnMapProgressBar" class="txn-map-progress-bar"></div></div>
       <div id="dongTxnMap" class="txn-map-canvas"></div>
-      <div id="dongTxnMapStatus" class="txn-map-status">지도를 준비하는 중이에요...</div><div class="txn-map-progress"><div id="dongTxnMapProgressBar" class="txn-map-progress-bar"></div></div>
     </div>
 
     <div class="txn-location-section">
