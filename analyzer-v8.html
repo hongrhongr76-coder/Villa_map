@@ -510,6 +510,40 @@
   .kakao-price-marker.active .kakao-price-marker-label,
   .kakao-price-marker.active .kakao-price-marker-dot{position:relative;z-index:999999 !important;}
   .kakao-info-overlay{display:inline-block;width:max-content;max-width:calc(100vw - 18px);}
+  .kakao-dom-popup{
+    position:absolute;
+    z-index:2147483000 !important;
+    width:max-content;
+    max-width:calc(100% - 12px);
+    white-space:normal;
+    text-align:left;
+    cursor:default;
+    pointer-events:auto;
+    visibility:hidden;
+  }
+  .kakao-dom-popup .kakao-info-wrap{
+    margin:0 !important;
+    padding:0 !important;
+    transform:none !important;
+  }
+  .kakao-dom-popup .kakao-info-tail{
+    position:absolute !important;
+    top:-6px !important;
+    width:12px !important;
+    height:12px !important;
+    margin:0 !important;
+    background:#fff !important;
+    border-left:1px solid #E4E0D6 !important;
+    border-top:1px solid #E4E0D6 !important;
+    border-right:0 !important;
+    border-bottom:0 !important;
+    transform:rotate(45deg) !important;
+    z-index:2147483001 !important;
+  }
+  .kakao-dom-popup .kakao-info-card{
+    position:relative !important;
+    z-index:2147483002 !important;
+  }
   .kakao-inline-popup{
     position:absolute;
     left:50%;
@@ -1341,24 +1375,61 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
 
                 if(kakaoActiveMarkerOverlay){ try{ kakaoActiveMarkerOverlay.setZIndex(kakaoActiveMarkerOverlay.__baseZIndex || 1000); }catch(e){} }
                 if(kakaoActiveMarkerEl){ kakaoActiveMarkerEl.classList.remove('active'); }
+
                 kakaoActiveMarkerOverlay=overlay;
                 kakaoActiveMarkerEl=markerEl;
-
-                // 현재 클릭한 마커를 최상단으로 올려서 팝업 위로 다른 실거래 포인트가 겹치지 않게 함
                 overlay.__baseZIndex=baseZIndex;
                 try{ overlay.setZIndex(999999); }catch(e){}
                 markerEl.classList.add('active');
 
-                // 팝업을 '지도 좌표'가 아니라 '클릭한 실거래 마커 자체'에 직접 붙입니다.
+                // 팝업은 마커 안에 넣지 않고 지도 컨테이너의 최상단에 직접 올립니다.
+                // 이렇게 해야 다른 실거래 포인트가 상세내역 글자 위로 올라오지 않습니다.
                 const infoEl=document.createElement('div');
-                infoEl.className='kakao-inline-popup';
+                infoEl.className='kakao-dom-popup';
                 infoEl.innerHTML=buildKakaoTxnInfo(t,approximate);
                 infoEl.addEventListener('click',e=>e.stopPropagation());
+                host.appendChild(infoEl);
 
-                markerEl.appendChild(infoEl);
+                const positionPopup=()=>{
+                  if(!infoEl.isConnected || !markerEl.isConnected) return;
+
+                  const hostRect=host.getBoundingClientRect();
+                  const markerRect=markerEl.getBoundingClientRect();
+
+                  infoEl.style.visibility='hidden';
+                  infoEl.style.left='0px';
+                  infoEl.style.top='0px';
+
+                  const popupRect=infoEl.getBoundingClientRect();
+                  const gap=2;
+                  const markerCenterX=(markerRect.left + markerRect.width/2) - hostRect.left;
+                  const markerBottom=markerRect.bottom - hostRect.top;
+
+                  const margin=6;
+                  const maxLeft=Math.max(margin, hostRect.width - popupRect.width - margin);
+                  const left=Math.min(Math.max(markerCenterX - popupRect.width/2, margin), maxLeft);
+                  const top=markerBottom + gap;
+
+                  infoEl.style.left=left+'px';
+                  infoEl.style.top=top+'px';
+
+                  const tail=infoEl.querySelector('.kakao-info-tail');
+                  if(tail){
+                    const tailLeft=Math.min(
+                      Math.max(markerCenterX - left - 6, 14),
+                      Math.max(14, popupRect.width - 26)
+                    );
+                    tail.style.left=tailLeft+'px';
+                  }
+
+                  infoEl.style.visibility='visible';
+                };
+
+                let popupIdleHandler=()=>positionPopup();
 
                 kakaoInfoOverlay={
                   setMap:()=>{
+                    try{ kakao.maps.event.removeListener(kakaoMapInstance,'idle',popupIdleHandler); }catch(e){}
                     if(infoEl && infoEl.parentNode) infoEl.parentNode.removeChild(infoEl);
                     markerEl.classList.remove('active');
                     try{ overlay.setZIndex(baseZIndex); }catch(e){}
@@ -1367,8 +1438,13 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
                   }
                 };
 
-                // 클릭한 포인트를 가운데로 이동해 팝업이 화면 밖으로 잘리지 않게 합니다.
+                kakao.maps.event.addListener(kakaoMapInstance,'idle',popupIdleHandler);
+
+                // 클릭한 포인트를 화면 중심으로 이동시킨 뒤 팝업 위치를 다시 계산
                 kakaoMapInstance.panTo(markerPos);
+                requestAnimationFrame(()=>requestAnimationFrame(positionPopup));
+                setTimeout(positionPopup,120);
+                setTimeout(positionPopup,350);
               });
 
               kakaoOverlays.push(overlay);
