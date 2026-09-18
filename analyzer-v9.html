@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가치경매 빌라 실거래가 분석기 · V9</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --navy:#16233F;
+    --navy-2:#223256;
+    --orange:#E8742C;
+    --orange-soft:#FBE4D3;
+    --cream:#F7F4EE;
+    --line:#E4E0D6;
+    --ink:#20242C;
+    --muted:#767066;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Malgun Gothic','Apple SD Gothic Neo','Pretendard',-apple-system,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 60px;}
+
+  header.top{
+    background:var(--navy);
+    color:#fff;
+    border-radius:14px;
+    padding:28px 26px;
+    margin-bottom:22px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  header.top::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-60px;
+    width:200px; height:200px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(232,116,44,0.35), transparent 70%);
+  }
+  header.top h1{
+    margin:0 0 6px;
+    font-size:22px;
+    letter-spacing:-0.3px;
+  }
+  header.top p{
+    margin:0;
+    color:#C7CEDE;
+    font-size:13.5px;
+  }
+  .brand-badge{
+    position:static; z-index:2;
+    display:inline-flex; align-items:center; gap:9px;
+    align-self:flex-end;
+    margin:14px 0 0;
+    background:rgba(255,255,255,0.12);
+    padding:8px 15px 8px 10px;
+    border-radius:22px;
+    backdrop-filter:blur(6px);
+    max-width:100%;
+  }
+  .brand-badge img{
+    width:32px; height:32px; border-radius:8px; object-fit:cover; display:block; flex-shrink:0;
+  }
+  .brand-badge span{
+    font-size:16.5px; color:#F2F5FA; font-weight:800; letter-spacing:.1px; white-space:nowrap;
+  }
+
+  @media(max-width:640px){
+    header.top{padding:22px 18px;}
+    .brand-badge{
+      align-self:flex-end;
+      margin:12px 0 0;
+      padding:7px 13px 7px 9px;
+    }
+    .brand-badge img{width:30px;height:30px;}
+    .brand-badge span{font-size:16px;}
+    header.top h1{font-size:18px; line-height:1.35;}
+    header.top p{font-size:12.5px; line-height:1.5;}
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:20px;
+  }
+
+  .upload{
+    text-align:center;
+    padding:40px 20px;
+    border:1.5px dashed #C9C2B4;
+    border-radius:12px;
+    background:#fff;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .upload:hover, .upload.drag{
+    border-color:var(--orange);
+    background:#FFF9F4;
+  }
+  .upload strong{display:block; font-size:15px; margin-bottom:4px;}
+  .upload span{font-size:12.5px; color:var(--muted);}
+  input[type=file]{display:none;}
+
+  .filename-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px; font-size:13px; color:var(--muted);
+  }
+  .filename-bar button{
+    border:1px solid var(--line); background:#fff; border-radius:8px;
+    padding:6px 12px; font-size:12.5px; cursor:pointer; color:var(--ink);
+  }
+  .filename-bar button:hover{border-color:var(--orange); color:var(--orange);}
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .stat{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:16px 14px;
+  }
+  .stat .label{font-size:12px; color:var(--muted); margin-bottom:6px;}
+  .stat .value{font-size:19px; font-weight:700; color:var(--navy-2);}
+  .stat .value em{color:var(--orange); font-style:normal;}
+
+  section{margin-bottom:26px;}
+  section h2{
+    font-size:15.5px; margin:0 0 12px; color:var(--navy-2);
+    display:flex; align-items:center; gap:8px;
+  }
+  section h2 .tag{
+    background:var(--orange-soft); color:#B85417;
+    font-size:11px; padding:2px 8px; border-radius:20px;
+  }
+
+  .top10-row{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid #F0ECE3;
+  }
+  .top10-row:last-child{border-bottom:none;}
+  .top10-rank{
+    width:22px; font-size:12.5px; color:var(--muted); font-weight:600; flex-shrink:0;
+  }
+  .top10-name{width:130px; font-size:13.5px; font-weight:600; flex-shrink:0;}
+  .top10-bar-track{flex:1; background:#F0ECE3; border-radius:6px; height:18px; overflow:hidden;}
+  .top10-bar-fill{background:linear-gradient(90deg,var(--orange),#F2985F); height:100%; border-radius:6px;}
+  .top10-count{width:70px; text-align:right; font-size:12.5px; color:var(--navy-2); font-weight:600; flex-shrink:0;}
+
+  .search-box{
+    display:flex; gap:8px; margin-bottom:14px;
+  }
+  .search-box input{
+    flex:1; padding:11px 14px; border:1px solid var(--line); border-radius:9px;
+    font-size:14px; font-family:inherit;
+  }
+  .search-box input:focus{outline:none; border-color:var(--orange);}
+
+  .detail-card{
+    display:none;
+    background:var(--navy);
+    color:#fff;
+    border-radius:12px;
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .detail-card.show{display:block;}
+  .detail-card .dong-name{font-size:16px; font-weight:700; margin-bottom:12px;}
+  .detail-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .detail-grid-5{grid-template-columns:repeat(5,1fr);}
+  .detail-grid div .k{font-size:11.5px; color:#B6BFD4; margin-bottom:3px;}
+  .detail-grid div .v{font-size:15px; font-weight:700; color:#fff;}
+  .detail-grid div .v em{color:var(--orange); font-style:normal;}
+
+  .pie-row{display:flex; gap:18px; margin-top:18px; flex-wrap:wrap;}
+  .pie-block{flex:1 1 200px;}
+  .pie-title{font-size:12px; color:#B6BFD4; margin-bottom:10px; font-weight:600;}
+  .pie-flex{display:flex; align-items:center; gap:14px;}
+  .donut{
+    width:72px; height:72px; border-radius:50%; flex-shrink:0; position:relative;
+  }
+  .donut::after{
+    content:""; position:absolute; inset:13px; background:var(--navy); border-radius:50%;
+  }
+  .pie-legend{display:flex; flex-direction:column; gap:6px;}
+  .pie-legend-row{display:flex; align-items:center; gap:7px; font-size:11.5px;}
+  .pie-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .pie-legend-label{color:#fff; font-weight:600;}
+  .pie-legend-val{color:#B6BFD4;}
+
+  .dong-txn-toggle{margin-top:16px; background:#fff; border-color:#C9C2B4; color:#20242C;}
+  .dong-txn-toggle:hover{border-color:var(--orange); color:var(--orange);}
+  .dong-txn-scroll table{min-width:480px; background:#fff; border-radius:12px;}
+  .dong-txn-scroll{margin-top:10px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; padding:9px 10px; color:var(--muted); font-weight:600;
+    font-size:12px; border-bottom:1.5px solid var(--line); cursor:pointer;
+    user-select:none; white-space:nowrap;
+  }
+  thead th:hover{color:var(--orange);}
+  thead th.active{color:var(--orange);}
+  tbody td{padding:9px 10px; border-bottom:1px solid #F0ECE3; white-space:nowrap;}
+  tbody tr:hover{background:#FFF9F4;}
+  .table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  .table-scroll table{min-width:520px;}
+  .table-scroll .card-inner{padding:0;}
+
+  .empty-msg{font-size:13px; color:var(--muted); padding:14px 4px;}
+  .note{font-size:12px; color:var(--muted); margin-top:6px;}
+
+  .guide-card{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .guide-card h3{margin:0 0 10px; font-size:14.5px; color:var(--navy-2);}
+  .guide-card ol{margin:0 0 12px; padding-left:20px; font-size:13.5px;}
+  .guide-card ol li{margin-bottom:5px;}
+  .guide-card a{
+    display:inline-block; font-size:13px; color:var(--orange); font-weight:600;
+    text-decoration:none;
+  }
+  .guide-card a:hover{text-decoration:underline;}
+
+  .info-icon{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:15px; height:15px; border-radius:50%;
+    background:#EDE8DE; color:var(--navy-2); font-size:10px; font-weight:700;
+    cursor:pointer; margin-left:5px; position:relative; vertical-align:middle;
+  }
+  .info-icon .bubble{
+    display:none; position:absolute; bottom:135%; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff; font-size:11.5px; font-weight:400;
+    padding:9px 11px; border-radius:8px; width:190px; line-height:1.45;
+    box-shadow:0 6px 18px rgba(0,0,0,.2); z-index:6; text-align:left;
+  }
+  .info-icon.open .bubble{display:block;}
+
+  .table-toggle-btn{
+    display:block; width:100%; text-align:center;
+    padding:13px; margin-bottom:10px;
+    background:#fff; border:1.5px dashed #C9C2B4; border-radius:12px;
+    font-size:13.5px; font-weight:600; color:var(--navy-2); cursor:pointer;
+  }
+  .table-toggle-btn:hover{border-color:var(--orange); color:var(--orange);}
+
+  .trend-scroll{overflow-x:auto;}
+  .trend-controls{margin-bottom:10px;}
+  .trend-controls select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px;
+    font-size:13.5px; font-family:inherit; background:#fff; color:var(--ink);
+    cursor:pointer;
+  }
+  .trend-controls select:focus{outline:none; border-color:var(--orange);}
+  .trend-chart{
+    display:flex; align-items:flex-end; gap:8px;
+    height:150px; padding-top:20px;
+  }
+  .trend-bar-wrap{
+    flex:0 0 40px; display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-end; height:100%; position:relative;
+  }
+  .trend-count{font-size:10.5px; color:var(--navy-2); font-weight:700; margin-bottom:4px; white-space:nowrap;}
+  .trend-bar{
+    width:60%; background:linear-gradient(180deg,#F2985F,var(--orange));
+    border-radius:5px 5px 2px 2px; min-height:3px;
+  }
+  .trend-label{font-size:10px; color:var(--muted); margin-top:7px; white-space:nowrap;}
+
+
+  /* 지도 연동 */
+  .dong-map-link{
+    color:inherit; text-decoration:none; font-weight:700; cursor:pointer;
+    border-bottom:1px dashed rgba(232,116,44,.65);
+  }
+  .dong-map-link:hover{color:var(--orange);}
+  .map-actions{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 2px;}
+  .map-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    padding:8px 11px; border-radius:8px; text-decoration:none;
+    font-size:12.5px; font-weight:700; border:1px solid rgba(255,255,255,.28);
+    color:#fff; background:rgba(255,255,255,.08);
+  }
+  .map-btn:hover{border-color:var(--orange); color:var(--orange);}
+  .table-map-link{color:var(--navy-2); text-decoration:none; font-weight:700;}
+  .table-map-link:hover{color:var(--orange); text-decoration:underline;}
+
+  /* 실거래 위치 + 거래일자 */
+  .txn-location-section{margin-top:18px;}
+  .txn-location-title{font-size:12px;color:#B6BFD4;font-weight:700;margin-bottom:9px;}
+  .txn-location-note{font-size:10.5px;color:#98A4C0;margin:-3px 0 10px;}
+  .txn-location-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .txn-location-card{
+    display:block;text-decoration:none;color:#fff;background:rgba(255,255,255,.075);
+    border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:11px 12px;
+    transition:border-color .15s,background .15s,transform .15s;
+  }
+  .txn-location-card:hover{border-color:var(--orange);background:rgba(255,255,255,.11);transform:translateY(-1px);}
+  .txn-location-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;}
+  .txn-date{font-size:11px;color:#F4B48C;font-weight:800;white-space:nowrap;}
+  .txn-price{font-size:13px;color:#fff;font-weight:800;white-space:nowrap;}
+  .txn-building{font-size:12.5px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .txn-address{font-size:11px;color:#C7CEDE;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .txn-meta{font-size:10.5px;color:#AEB8CF;margin-top:5px;}
+  .txn-map-badge{font-size:10px;color:#F4B48C;margin-left:4px;}
+  .txn-address-link{color:var(--navy-2);text-decoration:none;font-weight:700;}
+  .txn-address-link:hover{color:var(--orange);text-decoration:underline;}
+  .txn-map-actions{display:flex;gap:5px;white-space:nowrap;}
+  .txn-map-actions a{font-size:11px;font-weight:700;text-decoration:none;color:var(--orange);}
+  .txn-map-actions a:hover{text-decoration:underline;}
+  .click-dong{cursor:pointer;}
+  @media(max-width:640px){
+    .txn-location-grid{grid-template-columns:1fr;}
+    .txn-location-card{padding:10px 11px;}
+  }
+
+
+
+  /* 동별 실거래 지도 - 모바일/로컬파일 대응 */
+  .txn-map-wrap{margin-top:18px;}
+  .txn-map-title{font-size:12px;color:#B6BFD4;font-weight:700;margin-bottom:9px;}
+  .txn-map-note{font-size:10.5px;color:#98A4C0;margin:-3px 0 10px;}
+  .txn-map-canvas{
+    width:100%; height:430px; border-radius:12px; overflow:hidden;
+    border:1px solid rgba(255,255,255,.18); background:#E8EDF3;
+    position:relative; touch-action:none; user-select:none;
+  }
+  .mini-map-tiles,.mini-map-markers{position:absolute;inset:0;overflow:hidden;}
+  .mini-map-tile{position:absolute;width:256px;height:256px;max-width:none;}
+  .mini-map-marker{
+    position:absolute; transform:translate(-50%,-100%); z-index:40; cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;position:absolute;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
+  }
+  /* 손가락으로 누르기 쉬운 48px 터치 영역 */
+  .mini-map-marker::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:48px;height:48px;border-radius:24px;background:transparent;
+  }
+  .mini-map-marker-label{
+    position:relative;z-index:2;background:#E8742C;color:#fff;font-size:8.5px;font-weight:900;
+    padding:3px 5px;border-radius:6px;white-space:nowrap;line-height:1;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);border:1.5px solid #fff;
+  }
+  .mini-map-marker-dot{
+    position:relative;z-index:2;width:8px;height:8px;background:#E8742C;border:1.5px solid #fff;border-radius:50%;
+    box-shadow:0 1px 4px rgba(0,0,0,.26);margin-top:-1px;
+  }
+  .mini-map-marker:hover .mini-map-marker-label,.mini-map-marker:active .mini-map-marker-label{
+    transform:scale(1.08);
+  }
+  .price-band-1 .mini-map-marker-label,.price-dot-1{background:#2F6FED!important;}
+  .price-band-2 .mini-map-marker-label,.price-dot-2{background:#1F9D6B!important;}
+  .price-band-3 .mini-map-marker-label,.price-dot-3{background:#E59B24!important;}
+  .price-band-4 .mini-map-marker-label,.price-dot-4{background:#E05A47!important;}
+  .price-band-5 .mini-map-marker-label,.price-dot-5{background:#7A4FB3!important;}
+  .price-text-1{color:#7DA7FF!important}.price-text-2{color:#6AD7AA!important}.price-text-3{color:#F6C15B!important}.price-text-4{color:#FF9688!important}.price-text-5{color:#C59AF5!important}
+  .map-price-legend{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px;}
+  .map-price-legend span{font-size:9.5px;color:#D5DCEC;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:3px 7px;white-space:nowrap;}
+  .map-price-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:-1px;}
+  .mini-map-popup{
+    position:absolute;z-index:30;min-width:230px;max-width:285px;
+    background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);transform:translate(14px,-18px);
+    border:1px solid #E4E0D6;font-size:11px;
+  }
+  .mini-map-popup::before{
+    content:"";position:absolute;left:-7px;top:18px;width:14px;height:14px;
+    background:#fff;border-left:1px solid #E4E0D6;border-bottom:1px solid #E4E0D6;
+    transform:rotate(45deg);
+  }
+  .mini-map-popup-title{font-size:12.5px;font-weight:800;color:#16233F;margin:0 20px 3px 0;}
+  .mini-map-popup-sub{font-size:10.5px;color:#767066;margin-bottom:7px;}
+  .mini-map-popup-close{position:absolute;right:8px;top:6px;border:0;background:transparent;font-size:17px;color:#767066;cursor:pointer;}
+  .mini-map-popup-item{padding:7px 0;border-top:1px solid #EEE9E0;line-height:1.45;}
+  .mini-map-popup-item:first-of-type{border-top:none;padding-top:0;}
+  .mini-map-popup-date{font-size:10.5px;color:#E8742C;font-weight:800;}
+  .mini-map-popup-price{font-size:12px;color:#16233F;font-weight:800;}
+  .mini-map-popup .price-text-1{color:#245AC7!important}.mini-map-popup .price-text-2{color:#14764F!important}.mini-map-popup .price-text-3{color:#A66A00!important}.mini-map-popup .price-text-4{color:#B23E2E!important}.mini-map-popup .price-text-5{color:#653695!important}
+  .mini-map-controls{position:absolute;right:9px;top:9px;z-index:60;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+  .mini-map-control{
+    min-width:40px;height:40px;border:1px solid #D8D2C7;background:#fff;color:#16233F;
+    border-radius:10px;font-size:20px;font-weight:900;box-shadow:0 2px 9px rgba(0,0,0,.18);cursor:pointer;
+    touch-action:manipulation;
+  }
+  .mini-map-control.fit{width:auto;padding:0 10px;font-size:11px;white-space:nowrap;}
+  .mini-map-credit{position:absolute;right:6px;bottom:4px;z-index:15;background:rgba(255,255,255,.82);padding:1px 4px;border-radius:4px;font-size:8.5px;color:#555;}
+  .txn-map-status{font-size:11px;color:#C7CEDE;margin-top:8px;line-height:1.45;}
+  .txn-map-progress{height:5px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:7px;}
+  .txn-map-progress-bar{height:100%;width:0;background:#E8742C;transition:width .2s;}
+  .txn-summary-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px;}
+  .txn-summary-item{background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:10px 11px;}
+  .txn-summary-top{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+  .txn-summary-date{font-size:11px;color:#F4B48C;font-weight:800;white-space:nowrap;}
+  .txn-summary-price{font-size:13px;color:#fff;font-weight:800;white-space:nowrap;}
+  .txn-summary-meta{font-size:11px;color:#D9E0EF;margin-top:5px;line-height:1.45;}
+  .txn-summary-addr{font-size:10.5px;color:#AEB8CF;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .txn-summary-building{font-size:11px;color:#fff;font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media(max-width:640px){.txn-summary-list{grid-template-columns:1fr}.txn-map-canvas{height:360px}}
+
+
+  .top10-row.click-dong-row{cursor:pointer;border-radius:8px;padding-left:4px;padding-right:4px;}
+  .top10-row.click-dong-row:hover{background:#FFF9F4;}
+  .top10-open-map{font-size:11px;color:var(--orange);font-weight:800;white-space:nowrap;margin-left:6px;}
+  tbody tr.click-dong-row{cursor:pointer;}
+  tbody tr.click-dong-row:hover{background:#FFF4EA;}
+  .map-click-hint{font-size:11px;color:var(--muted);margin:-4px 0 10px;}
+
+
+  /* v5: 실거래 카드 전체정보 + 클릭 지도연결 */
+  .txn-summary-item{display:block;text-decoration:none;color:inherit;cursor:pointer;position:relative;}
+  .txn-summary-item:hover{border-color:var(--orange);background:rgba(255,255,255,.12);transform:translateY(-1px);}
+  .txn-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 10px;margin-top:8px;}
+  .txn-summary-field{font-size:10.8px;color:#D9E0EF;line-height:1.45;}
+  .txn-summary-field b{color:#fff;font-weight:800;}
+  .txn-summary-mapcue{margin-top:8px;font-size:10.5px;color:#F4B48C;font-weight:800;}
+  .click-map-row{cursor:pointer;}
+  .click-map-row:hover{background:#FFF5EC;}
+  .map-popup-building{font-size:12px;color:#20242C;font-weight:800;margin:2px 0 3px;}
+  .map-popup-address{font-size:10.8px;color:#767066;margin-bottom:7px;line-height:1.35;}
+  @media(max-width:640px){.txn-summary-grid{grid-template-columns:1fr;gap:3px;}}
+
+
+
+  /* 전체 실거래: 각 값에 제목을 함께 표시 */
+  .txn-summary-label{font-size:10px;color:#AEB8CF;font-weight:700;margin-right:5px;}
+  .txn-summary-value{color:#fff;font-weight:800;}
+  .txn-summary-row{font-size:11px;color:#D9E0EF;line-height:1.5;margin-top:4px;}
+  .txn-summary-row.address{color:#D9E0EF;white-space:normal;overflow:visible;text-overflow:clip;}
+
+  @media(max-width:640px){
+    .dong-txn-scroll{overflow:visible;}
+    .dong-txn-scroll table{min-width:0 !important;width:100%;background:transparent;border-radius:0;}
+    .dong-txn-scroll thead{display:none;}
+    .dong-txn-scroll tbody{display:block;}
+    .dong-txn-scroll tr.click-map-row{
+      display:block;background:#fff;border:1px solid #E4E0D6;border-radius:10px;
+      margin:0 0 10px;padding:7px 10px;box-shadow:0 1px 2px rgba(0,0,0,.03);
+    }
+    .dong-txn-scroll tr.click-map-row:hover{background:#FFF9F4;}
+    .dong-txn-scroll tr.click-map-row td{
+      display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;
+      padding:6px 0;border-bottom:1px solid #F0ECE3;white-space:normal;
+      color:#20242C;align-items:start;
+    }
+    .dong-txn-scroll tr.click-map-row td:last-child{border-bottom:none;}
+    .dong-txn-scroll tr.click-map-row td::before{
+      content:attr(data-label);font-size:11px;font-weight:800;color:#767066;
+    }
+    .dong-txn-scroll .txn-map-actions{display:grid;grid-template-columns:88px minmax(0,1fr);}
+    .dong-txn-scroll .txn-map-actions a{margin-right:10px;}
+  }
+
+
+
+  /* Kakao 지도 연동 */
+  .kakao-map-setup{
+    background:#fff;color:#20242C;border:1px solid #D9D4C9;border-radius:11px;
+    padding:12px 13px;margin:10px 0 12px;
+  }
+  .kakao-map-setup-title{font-size:12.5px;font-weight:800;color:#16233F;margin-bottom:5px;}
+  .kakao-map-setup-desc{font-size:10.5px;color:#767066;line-height:1.45;margin-bottom:8px;}
+  .kakao-map-key-row{display:flex;gap:7px;align-items:center;}
+  .kakao-map-key-row input{
+    flex:1;min-width:0;padding:9px 10px;border:1px solid #D9D4C9;border-radius:8px;
+    font-size:12px;font-family:inherit;color:#20242C;background:#fff;
+  }
+  .kakao-map-key-row button{
+    border:0;border-radius:8px;padding:9px 11px;background:#03C75A;color:#fff;
+    font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;
+  }
+  .kakao-map-key-row .secondary{background:#6E7687;}
+  .kakao-map-connected{
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    background:rgba(3,199,90,.10);border:1px solid rgba(3,199,90,.30);border-radius:9px;
+    padding:8px 10px;margin:8px 0 10px;color:#1B5935;font-size:11px;font-weight:700;
+  }
+  .kakao-map-connected button{border:0;background:transparent;color:#5E665F;text-decoration:underline;cursor:pointer;font-size:10.5px;}
+  .kakao-map-canvas{width:100%;height:440px;border-radius:12px;overflow:hidden;background:#EEF2F7;border:1px solid rgba(255,255,255,.18);}
+  .kakao-price-marker{
+    transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;
+    white-space:nowrap;user-select:none;position:relative;touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
+  }
+  .kakao-price-marker::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:48px;height:48px;border-radius:24px;background:transparent;
+  }
+  .kakao-price-marker-label{
+    position:relative;z-index:2;color:#fff;font-size:9px;font-weight:900;padding:3px 5px;border-radius:6px;
+    border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.26);line-height:1;
+  }
+  .kakao-price-marker-dot{position:relative;z-index:2;width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);margin-top:-1px;}
+  .kakao-price-marker:hover .kakao-price-marker-label,.kakao-price-marker:active .kakao-price-marker-label{transform:scale(1.08);}
+  .kakao-info-overlay{display:inline-block;width:max-content;max-width:calc(100vw - 18px);}
+  .kakao-info-wrap{position:relative;padding:0;}
+  .kakao-info-tail{position:absolute;width:12px;height:12px;background:#fff;z-index:3;}
+  .kakao-info-overlay.right .kakao-info-wrap{margin-left:6px;}
+  .kakao-info-overlay.right .kakao-info-tail{
+    left:-6px;top:22px;border-left:1px solid #E4E0D6;border-bottom:1px solid #E4E0D6;
+    transform:rotate(45deg);
+  }
+  .kakao-info-overlay.below .kakao-info-wrap{margin-top:2px;}
+  .kakao-info-overlay.below .kakao-info-tail{
+    left:50%;top:-6px;margin-left:-6px;border-left:1px solid #E4E0D6;border-top:1px solid #E4E0D6;
+    transform:rotate(45deg);
+  }
+  .kakao-info-card{position:relative;z-index:2;width:255px;max-height:320px;overflow:auto;background:#fff;color:#20242C;border-radius:10px;padding:11px 12px;box-shadow:0 7px 22px rgba(0,0,0,.25);border:1px solid #E4E0D6;}
+  .kakao-info-title{font-size:12.5px;font-weight:900;color:#16233F;margin-bottom:3px;}
+  .kakao-info-sub{font-size:10.5px;color:#767066;margin-bottom:7px;}
+  .kakao-info-item{padding:7px 0;border-top:1px solid #EEE9E0;font-size:11px;line-height:1.5;}
+  .kakao-info-item:first-of-type{border-top:0;padding-top:0;}
+  .kakao-info-price{font-size:12px;font-weight:900;color:#16233F;}
+  .kakao-info-maplink{display:inline-block;margin-top:5px;color:#03A64B;text-decoration:none;font-size:10.5px;font-weight:800;}
+  .kakao-fallback-note{font-size:10.5px;color:#98A4C0;margin:6px 0 8px;line-height:1.45;}
+  @media(max-width:640px){.kakao-map-canvas{height:390px}.kakao-map-key-row{flex-wrap:wrap}.kakao-map-key-row input{flex:1 1 100%}}
+
+
+  /* v12: 선택 동 즉시 중심이동 + 실거래 좌표 재조회 + 오래된 실패 캐시 제거 */
+  /* v14: 지도 크게 보기 개선 - 모든 선택 동에 동일 적용 */
+  body.map-modal-open{overflow:hidden;}
+  .txn-map-toolbar{
+    display:block;margin:8px 0 10px;
+  }
+  .txn-map-toolbar button,.txn-map-toolbar a{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    border:1px solid rgba(255,255,255,.28);border-radius:9px;padding:8px 11px;
+    background:rgba(255,255,255,.09);color:#fff;text-decoration:none;
+    font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;
+  }
+  .txn-map-toolbar button:hover,.txn-map-toolbar a:hover{border-color:var(--orange);color:#F4B48C;}
+  .txn-map-toolbar .primary{background:var(--orange);border-color:var(--orange);color:#fff;width:100%;}
+  .txn-map-wrap.map-fullscreen{
+    position:fixed;inset:0;z-index:999999;margin:0;padding:14px 14px 18px;
+    background:#16233F;overflow:auto;border-radius:0;
+    overscroll-behavior:contain;
+  }
+  .txn-map-wrap.map-fullscreen .txn-map-title{font-size:15px;margin-top:2px;}
+  .txn-map-wrap.map-fullscreen .txn-map-note{font-size:11.5px;}
+  .txn-map-wrap.map-fullscreen .txn-map-canvas,
+  .txn-map-wrap.map-fullscreen .kakao-map-canvas{
+    height:calc(100dvh - 205px) !important;min-height:430px;border-radius:12px;
+  }
+  .txn-map-wrap.map-fullscreen .kakao-info-card{width:min(330px,82vw);max-height:58dvh;}
+  .txn-map-wrap.map-fullscreen .mini-map-popup{max-height:58dvh;overflow:auto;min-width:min(300px,82vw);}
+  .txn-map-fullscreen-hint{font-size:10.5px;color:#F4B48C;margin-top:5px;font-weight:700;}
+  @media(max-width:640px){
+    .txn-map-toolbar{display:block;}
+    .txn-map-toolbar button,.txn-map-toolbar a{width:100%;padding:10px 8px;font-size:11px;}
+    .txn-map-wrap.map-fullscreen{padding:10px;}
+    .txn-map-wrap.map-fullscreen .txn-map-canvas,
+    .txn-map-wrap.map-fullscreen .kakao-map-canvas{height:calc(100dvh - 220px) !important;min-height:360px;}
+  }
+
+
+
+  /* v14: 모든 선택 동 공통 - 지도/마커/상세창 크게 보기 */
+  @media (min-width:900px){
+    .txn-map-wrap{
+      width:min(1320px,calc(100vw - 36px));
+      margin-left:50%;
+      transform:translateX(-50%);
+    }
+    .txn-map-canvas,.kakao-map-canvas{
+      height:min(72vh,780px) !important;
+      min-height:620px;
+    }
+    .kakao-price-marker-label{
+      font-size:10px;
+      padding:4px 6px;
+      border-radius:7px;
+      border-width:1.5px;
+    }
+    .kakao-price-marker-dot{
+      width:10px;
+      height:10px;
+      border-width:2px;
+    }
+    .kakao-price-marker::before{
+      width:58px;
+      height:58px;
+      border-radius:29px;
+    }
+    .kakao-info-card{
+      width:330px;
+      max-height:430px;
+      padding:14px 15px;
+      border-radius:12px;
+    }
+    .kakao-info-title{font-size:15px;}
+    .kakao-info-sub{font-size:12px;line-height:1.45;}
+    .kakao-info-item{font-size:12.5px;line-height:1.65;}
+    .kakao-info-price{font-size:13.5px;}
+    .kakao-info-maplink{font-size:12px;}
+  }
+  @media (min-width:641px) and (max-width:899px){
+    .txn-map-canvas,.kakao-map-canvas{
+      height:68vh !important;
+      min-height:560px;
+    }
+  }
+  @media (max-width:640px){
+    .txn-map-wrap{width:auto;margin-left:0;transform:none;}
+    .txn-map-canvas,.kakao-map-canvas{
+      height:64vh !important;
+      min-height:480px;
+    }
+    .kakao-price-marker-label{font-size:8.5px;padding:3px 5px;border-radius:6px;border-width:1.5px;}
+    .kakao-price-marker-dot{width:8px;height:8px;border-width:1.5px;margin-top:-1px;}
+    .kakao-info-card{width:min(310px,84vw);max-height:56vh;padding:12px 13px;}
+    .kakao-info-title{font-size:14px;}
+    .kakao-info-item{font-size:12px;line-height:1.6;}
+  }
+
+  /* v16: v14 지도/실거래 로직 유지 + 상세팝업/모바일 파일선택만 개선 */
+  .mobile-file-picker{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:14px;
+    padding:11px 16px;
+    border-radius:10px;
+    background:#E8742C;
+    color:#fff;
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .mobile-selected-file{
+    margin-top:8px;
+    font-size:12.5px;
+    color:#6E7687;
+    word-break:break-all;
+  }
+
+  .kakao-info-card{
+    width:390px !important;
+    max-width:calc(100vw - 40px) !important;
+    max-height:520px !important;
+    padding:18px 20px !important;
+    border-radius:14px !important;
+  }
+  .kakao-info-title{
+    font-size:18px !important;
+    line-height:1.35 !important;
+    margin-bottom:6px !important;
+  }
+  .kakao-info-sub{
+    font-size:14px !important;
+    line-height:1.5 !important;
+    margin-bottom:10px !important;
+  }
+  .kakao-info-item{
+    font-size:15px !important;
+    line-height:1.8 !important;
+    padding:10px 0 !important;
+  }
+  .kakao-info-price{font-size:16px !important;}
+  .kakao-info-maplink{
+    font-size:14px !important;
+    margin-top:8px !important;
+  }
+
+  @media(max-width:640px){
+    .kakao-info-overlay.below .kakao-info-card{max-height:44dvh !important;}
+  }
+
+  @media(max-width:640px){
+    .mobile-file-picker{
+      display:flex;
+      width:100%;
+      box-sizing:border-box;
+      padding:14px 16px;
+      font-size:16px;
+    }
+    .mobile-selected-file{font-size:13px;line-height:1.45;}
+    .kakao-info-card{
+      width:min(340px,88vw) !important;
+      max-width:88vw !important;
+      max-height:62dvh !important;
+      padding:16px 17px !important;
+    }
+    .kakao-info-title{font-size:17px !important;}
+    .kakao-info-sub{font-size:13.5px !important;}
+    .kakao-info-item{font-size:14.5px !important;line-height:1.75 !important;}
+    .kakao-info-price{font-size:16px !important;}
+    .kakao-info-maplink{font-size:13.5px !important;}
+  }
+
+
+  /* v17: 선택 동 중심/주소검색 보강 + 지도 레이아웃 정상화 */
+  @media (min-width:900px){
+    .txn-map-wrap{
+      width:100% !important;
+      margin-left:0 !important;
+      transform:none !important;
+    }
+    .txn-map-canvas,
+    .kakao-map-canvas{
+      height:540px !important;
+      min-height:540px !important;
+    }
+  }
+  .txn-map-status{
+    margin:8px 0 6px !important;
+    font-size:12px !important;
+    line-height:1.5 !important;
+    color:#D5DCEC !important;
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>가치경매 빌라 실거래가 분석기</h1>
+    <p>국토부 연립다세대 매매 실거래가 엑셀을 올리면 동별 분석 + 카카오맵 전체 실거래를 보여줘요</p>
+    <div class="brand-badge">
+      <img src="data:image/png;base64,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" alt="가치경매 로고">
+      <span>made by 가치경매</span>
+    </div>
+    
+
+  </header>
+
+  <div id="uploadSection">
+    <div class="guide-card">
+      <h3>📥 실거래가 파일은 이렇게 받아요</h3>
+      <ol>
+        <li><b>국토교통부 실거래가 공개시스템</b>에 들어가요</li>
+        <li>오른쪽 위 <b>자료제공</b>을 클릭해요</li>
+        <li>메뉴에서 <b>"연립다세대 매매"</b>를 골라요</li>
+        <li>보고 싶은 <b>지역과 기간</b>을 선택해요</li>
+        <li><b>엑셀 다운로드</b> 버튼을 눌러요</li>
+      </ol>
+      <a href="https://rt.molit.go.kr" target="_blank" rel="noopener">실거래가 공개시스템 바로가기 →</a>
+    </div>
+
+    <div id="uploadZone" class="upload" onclick="document.getElementById('fileInput').click()">
+      <strong>다운로드한 엑셀 파일을 올려주세요</strong>
+      <span>클릭하거나 파일을 이곳에 끌어다 놓으세요 (.xlsx)</span>
+      <input type="file" id="fileInput">
+      <label for="fileInput" class="mobile-file-picker" onclick="event.stopPropagation()">📂 엑셀 파일 선택하기</label>
+      <div id="mobileSelectedFile" class="mobile-selected-file">선택된 파일 없음</div>
+    </div>
+  </div>
+
+  <div id="results" style="display:none;">
+
+    <div class="filename-bar">
+      <span id="fileInfo"></span>
+      <button id="resetBtn">다른 파일 올리기</button>
+    </div>
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <section>
+      <h2>가장 많이 거래된 동 <span class="tag">TOP 10</span></h2>
+      <div class="card" id="top10Box"></div>
+    </section>
+
+    <section>
+      <h2>월별 거래량 추이 <span class="tag">TREND</span></h2>
+      <div class="trend-controls">
+        <select id="trendDongSelect">
+          <option value="__all__">전체 지역</option>
+        </select>
+      </div>
+      <div class="card" id="trendBox"></div>
+    </section>
+
+    <section>
+      <h2>행정동 검색</h2>
+      <div class="map-click-hint">동 이름이나 아래 지역을 누르면 그 동의 실거래가 지도에 바로 표시됩니다.</div>
+      <div class="search-box">
+        <input type="text" id="dongSearch" placeholder="예: 상계동, 방화동, 논현동 ...">
+      </div>
+      <div class="detail-card" id="detailCard"></div>
+    </section>
+
+    <section>
+      <h2>동네별 전체 통계</h2>
+      <button id="toggleTableBtn" class="table-toggle-btn">📋 전체 동네 표로 보기</button>
+      <div id="tableWrap" style="display:none;">
+        <div class="table-scroll">
+          <div class="card card-inner">
+            <table>
+              <thead>
+                <tr>
+                  <th data-key="dong">동네
+                    <span class="info-icon">ⓘ<span class="bubble">"구" 안에 있는 더 작은 마을 단위예요. 예: 노원구 안의 상계동</span></span>
+                  </th>
+                  <th data-key="count">거래건수</th>
+                  <th data-key="avgArea">평균 집 크기(㎡)
+                    <span class="info-icon">ⓘ<span class="bubble">집 안에서 실제로 쓰는 공간의 넓이예요. 3.3㎡ ≈ 1평</span></span>
+                  </th>
+                  <th data-key="avgPrice">평균 거래금액</th>
+                  <th data-key="avgAge">지어진 지(년)
+                    <span class="info-icon">ⓘ<span class="bubble">이 집이 지어지고 나서 지금까지 지난 햇수예요</span></span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+let aggregated = [];
+let allRecords = [];
+let sortKey = 'count';
+let sortDir = -1;
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const resultsEl = document.getElementById('results');
+
+['dragover','dragenter'].forEach(evt=>{
+  uploadZone.addEventListener(evt, e=>{ e.preventDefault(); uploadZone.classList.add('drag'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  uploadZone.addEventListener(evt, e=>{ e.preventDefault(); uploadZone.classList.remove('drag'); });
+});
+uploadZone.addEventListener('drop', e=>{
+  const f = e.dataTransfer.files[0];
+  if(f) handleFile(f);
+});
+fileInput.addEventListener('change', e=>{
+  const chosen=e.target.files && e.target.files[0] ? e.target.files[0] : null;
+  const mobileName=document.getElementById('mobileSelectedFile');
+  if(chosen){
+    if(mobileName) mobileName.textContent='선택됨: '+chosen.name;
+    handleFile(chosen);
+  }else{
+    if(mobileName) mobileName.textContent='선택된 파일 없음';
+  }
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  resultsEl.style.display='none';
+  document.getElementById('uploadSection').style.display='block';
+  fileInput.value='';
+  const mobileName=document.getElementById('mobileSelectedFile');
+  if(mobileName) mobileName.textContent='선택된 파일 없음';
+});
+
+document.getElementById('toggleTableBtn').addEventListener('click', ()=>{
+  const wrap = document.getElementById('tableWrap');
+  const btn = document.getElementById('toggleTableBtn');
+  const showing = wrap.style.display !== 'none';
+  wrap.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '📋 전체 동네 표로 보기' : '🙈 표 접기';
+});
+
+document.addEventListener('click', (e)=>{
+  const icon = e.target.closest('.info-icon');
+  document.querySelectorAll('.info-icon.open').forEach(el=>{
+    if(el !== icon) el.classList.remove('open');
+  });
+  if(icon){ icon.classList.toggle('open'); }
+});
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+      processRows(raw, file.name);
+    }catch(err){
+      alert('파일을 읽는 중 문제가 생겼어요. 국토부 실거래가 엑셀 형식이 맞는지 확인해주세요.\n('+err.message+')');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processRows(raw, fileName){
+  const headerRowIdx = raw.findIndex(row => row.includes('시군구'));
+  if(headerRowIdx === -1){
+    alert('엑셀에서 "시군구" 열을 찾지 못했어요. 국토부 실거래가 원본 형식 그대로 업로드해주세요.');
+    return;
+  }
+  const headers = raw[headerRowIdx];
+  const col = (name)=> headers.indexOf(name);
+  const iSigungu = col('시군구');
+  const iArea = col('전용면적(㎡)');
+  const iPrice = col('거래금액(만원)');
+  const iYear = col('건축년도');
+  const completionCandidates = ['준공일자','사용승인일자','사용승인일','준공일'];
+  const iCompletion = completionCandidates.map(col).find(i=>i>-1) ?? -1;
+  const iContract = col('계약년월');
+  const iCancel = col('해제사유발생일');
+  const iDay = col('계약일');
+  const iBuilding = col('건물명');
+  const iFloor = col('층');
+  const iDealType = col('거래유형');
+  const iHouseType = col('주택유형');
+  const iRoad = col('도로명');
+  const iLot = col('번지');
+
+  // 국토부 엑셀 상단 검색조건의 '시도 : 서울특별시' 값을 읽어둡니다.
+  // 일부 대용량 자료는 '시군구' 셀에 시도명이 빠질 수 있어서 지도 검색용 주소에 보완합니다.
+  let sidoHint='';
+  outerSido:
+  for(let rr=0; rr<headerRowIdx; rr++){
+    for(const cell of (raw[rr]||[])){
+      const txt=String(cell ?? '').trim();
+      const m=txt.match(/^시도\s*:\s*(.+)$/);
+      if(m && m[1]){ sidoHint=m[1].trim(); break outerSido; }
+    }
+  }
+  const topRegionRe=/^(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|경기도|강원특별자치도|충청북도|충청남도|전북특별자치도|전라남도|경상북도|경상남도|제주특별자치도)(\s|$)/;
+  const validSidoHint = topRegionRe.test(String(sidoHint||'').trim()) ? String(sidoHint).trim() : '';
+  const normalizeRegion=(value)=>{
+    let v=String(value ?? '').replace(/\s+/g,' ').trim();
+    if(!v) return '';
+    if(validSidoHint && !topRegionRe.test(v)) v=validSidoHint+' '+v;
+    return v.replace(/\s+/g,' ').trim();
+  };
+
+  const records = [];
+  let canceledCount = 0;
+  for(let r = headerRowIdx+1; r < raw.length; r++){
+    const row = raw[r];
+    const sg = row[iSigungu];
+    if(!sg || typeof sg !== 'string') continue;
+
+    const cancelVal = iCancel > -1 ? row[iCancel] : '-';
+    if(cancelVal && cancelVal !== '-'){ canceledCount++; continue; }
+
+    const regionQuery=normalizeRegion(sg);
+    const parts = regionQuery.split(/\s+/);
+    if(parts.length < 2) continue;
+    const dong = parts[parts.length-1];
+    const gu = parts.length >= 3 ? parts[parts.length-2] : parts[0];
+
+    const area = parseFloat(row[iArea]);
+    const priceRaw = row[iPrice];
+    const price = typeof priceRaw === 'string' ? parseFloat(priceRaw.replace(/,/g,'')) : parseFloat(priceRaw);
+    const builtYear = parseInt(row[iYear], 10);
+    const contract = parseInt(row[iContract], 10);
+    const contractYear = contract ? Math.floor(contract/100) : new Date().getFullYear();
+    const age = (builtYear && builtYear > 1900) ? (contractYear - builtYear) : null;
+
+    if(isNaN(area) || isNaN(price)) continue;
+
+    const pyeong = area / 3.3058;
+    const pricePerPyeong = pyeong > 0 ? price / pyeong : null;
+
+    records.push({
+      gu, dong, fullName: gu+' '+dong,
+      area, price, age, builtYear: (!isNaN(builtYear) && builtYear > 1900) ? builtYear : null,
+      completionDate: iCompletion>-1 ? String(row[iCompletion] || '').trim() : '',
+      month:contract,
+      day: iDay>-1 ? row[iDay] : null,
+      building: iBuilding>-1 ? row[iBuilding] : '',
+      floor: iFloor>-1 ? row[iFloor] : '',
+      dealType: iDealType>-1 ? row[iDealType] : '',
+      houseType: iHouseType>-1 ? row[iHouseType] : '',
+      road: iRoad>-1 ? String(row[iRoad] || '').trim() : '',
+      lot: iLot>-1 ? String(row[iLot] || '').trim() : '',
+      regionQuery,
+      roadQuery: (iRoad>-1 && String(row[iRoad] || '').trim())
+        ? (parts.slice(0,-1).join(' ')+' '+String(row[iRoad]).trim()) : '',
+      lotQuery: (iLot>-1 && String(row[iLot] || '').trim())
+        ? (regionQuery+' '+String(row[iLot]).trim()) : '',
+      addressQuery: (iRoad>-1 && String(row[iRoad] || '').trim())
+        ? (parts.slice(0,-1).join(' ')+' '+String(row[iRoad]).trim())
+        : (regionQuery+' '+(iLot>-1 ? String(row[iLot] || '').trim() : '')),
+      pricePerPyeong
+    });
+  }
+
+  if(records.length === 0){
+    alert('집계할 수 있는 거래 데이터를 찾지 못했어요.');
+    return;
+  }
+
+  const map = new Map();
+  for(const rec of records){
+    const key = rec.fullName;
+    if(!map.has(key)) map.set(key, {gu:rec.gu, dong:rec.dong, count:0, sumArea:0, sumPrice:0, sumAge:0, ageCount:0, sumPPY:0, ppyCount:0, houseType:{}, dealType:{}});
+    const g = map.get(key);
+    g.count++;
+    g.sumArea += rec.area;
+    g.sumPrice += rec.price;
+    if(rec.age !== null){ g.sumAge += rec.age; g.ageCount++; }
+    if(rec.pricePerPyeong !== null){ g.sumPPY += rec.pricePerPyeong; g.ppyCount++; }
+    if(rec.houseType){ g.houseType[rec.houseType] = (g.houseType[rec.houseType]||0)+1; }
+    if(rec.dealType){ g.dealType[rec.dealType] = (g.dealType[rec.dealType]||0)+1; }
+  }
+
+  aggregated = Array.from(map.values()).map(g=>({
+    gu:g.gu, dong:g.dong,
+    fullName: g.gu+' '+g.dong,
+    count:g.count,
+    avgArea: g.sumArea/g.count,
+    avgPrice: g.sumPrice/g.count,
+    avgAge: g.ageCount ? g.sumAge/g.ageCount : null,
+    avgPricePerPyeong: g.ppyCount ? g.sumPPY/g.ppyCount : null,
+    houseType: g.houseType,
+    dealType: g.dealType
+  }));
+
+  renderAll(records, fileName, canceledCount);
+}
+
+function fmtPrice(manwon){
+  const eok = Math.floor(manwon/10000);
+  const rest = Math.round(manwon - eok*10000);
+  if(eok > 0) return eok+'억 '+rest.toLocaleString()+'만원';
+  return Math.round(manwon).toLocaleString()+'만원';
+}
+
+function fmtDealDate(t, short=false){
+  if(!t || !t.month) return '-';
+  const raw = String(t.month);
+  const y = raw.slice(0,4), m = raw.slice(4,6);
+  const d = t.day!=='' && t.day!=null ? String(t.day).padStart(2,'0') : '';
+  if(short) return d ? y.slice(2)+'.'+m+'.'+d : y.slice(2)+'.'+m;
+  return d ? y+'.'+m+'.'+d : y+'.'+m;
+}
+
+function txnAddress(t){
+  if(!t) return '';
+  if(t.road) return t.gu+' '+t.dong+' · '+t.road;
+  if(t.lot) return t.gu+' '+t.dong+' '+t.lot;
+  return t.fullName;
+}
+
+
+let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
+let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
+let currentKakaoMapPoints=[];
+
+// v18: 지도 주소검색 공용 캐시/JSONP 카운터
+const geoCache = new Map();
+let geoJsonpSeq = 0;
+
+function naverMapUrl(place){
+  return 'https://map.naver.com/p/search/' + encodeURIComponent(place);
+}
+
+function kakaoMapUrl(place){
+  return 'https://map.kakao.com/link/search/' + encodeURIComponent(place);
+}
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function cleanupDongMap(){
+  miniMapState = null;
+  currentKakaoMapPoints=[];
+  document.body.classList.remove('map-modal-open');
+  const oldWrap=document.querySelector('.txn-map-wrap.map-fullscreen');
+  if(oldWrap) oldWrap.classList.remove('map-fullscreen');
+  if(kakaoInfoOverlay){ try{ kakaoInfoOverlay.setMap(null); }catch(err){} }
+  kakaoInfoOverlay=null;
+  for(const o of kakaoOverlays){ try{ o.setMap(null); }catch(err){} }
+  kakaoOverlays=[];
+  kakaoMapInstance=null;
+}
+
+// Kakao Developers에서 발급한 JavaScript 키입니다.
+// 이 키는 등록한 JavaScript SDK 도메인에서만 동작하도록 제한되어 있습니다.
+const KAKAO_MAP_JS_KEY = 'a6474ae1c2b07f004d0ebc5dd68d98f6';
+
+function getKakaoMapKey(){
+  return String(KAKAO_MAP_JS_KEY||'').trim();
+}
+
+function loadKakaoMapsApi(key){
+  key=String(key||'').trim();
+  if(!key) return Promise.reject(new Error('카카오맵 JavaScript 키가 설정되지 않았습니다.'));
+  if(window.kakao && window.kakao.maps && window.kakao.maps.services) return Promise.resolve(window.kakao.maps);
+  if(kakaoMapLoadingPromise) return kakaoMapLoadingPromise;
+  kakaoMapLoadingPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.async=true;
+    script.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(key)+'&autoload=false&libraries=services';
+    script.onload=()=>{
+      if(!window.kakao || !window.kakao.maps){ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 SDK를 불러오지 못했습니다.')); return; }
+      window.kakao.maps.load(()=>{
+        if(window.kakao.maps.services) resolve(window.kakao.maps);
+        else { kakaoMapLoadingPromise=null; reject(new Error('카카오맵 주소검색 모듈을 불러오지 못했습니다.')); }
+      });
+    };
+    script.onerror=()=>{ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 연결에 실패했습니다. JavaScript 키와 SDK 도메인 등록을 확인해주세요.')); };
+    document.head.appendChild(script);
+    setTimeout(()=>{
+      if(!(window.kakao&&window.kakao.maps)){ kakaoMapLoadingPromise=null; reject(new Error('카카오맵 API 응답이 없습니다.')); }
+    },15000);
+  });
+  return kakaoMapLoadingPromise;
+}
+
+function kakaoMarkerColor(price){
+  const b=priceBand(price);
+  return b===1?'#2F6FED':b===2?'#1F9D6B':b===3?'#E59B24':b===4?'#E05A47':'#7A4FB3';
+}
+
+function buildKakaoTxnInfo(t, approximate=false){
+  return `<div class="kakao-info-wrap">
+    <div class="kakao-info-tail"></div>
+    <div class="kakao-info-card">
+      <div class="kakao-info-title">${escapeHtml(t.building||'건물명 없음')}</div>
+      <div class="kakao-info-sub">${escapeHtml(txnAddress(t))}</div>
+      ${approximate?'<div style="font-size:10px;color:#B85417;background:#FFF3E9;border:1px solid #F5C9A9;border-radius:7px;padding:5px 7px;margin:5px 0 7px;">※ 정확한 주소 좌표를 찾지 못해 이 동의 중심 주변에 임시 표시한 거래입니다.</div>':''}
+      <div class="kakao-info-item">
+        <div><b>건물명</b> ${escapeHtml(t.building||'-')}</div>
+        <div><b>주소</b> ${escapeHtml(txnAddress(t))}</div>
+        <div><b>전용면적</b> ${t.area.toFixed(1)}㎡</div>
+        <div><b>거래금액</b> <span class="kakao-info-price">${fmtPrice(t.price)}</span></div>
+        <div><b>거래일자</b> ${fmtDealDate(t)}</div>
+        <div><b>층수</b> ${t.floor!==''&&t.floor!=null?t.floor+'층':'-'}</div>
+        <div><b>준공일자/년도</b> ${fmtCompletion(t)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function kakaoGeocodeOnce(query){
+  return new Promise(resolve=>{
+    const q=String(query||'').trim();
+    if(!q || !kakaoGeocoder){ resolve(null); return; }
+    kakaoGeocoder.addressSearch(q,(result,status)=>{
+      if(status===kakao.maps.services.Status.OK && result && result[0]){
+        const lat=Number(result[0].y), lon=Number(result[0].x);
+        resolve(isFinite(lat)&&isFinite(lon)?{lat,lon}:null);
+        return;
+      }
+      if(!kakaoPlaces){ resolve(null); return; }
+      kakaoPlaces.keywordSearch(q,(data,status2)=>{
+        if(status2===kakao.maps.services.Status.OK && data && data[0]){
+          const lat=Number(data[0].y), lon=Number(data[0].x);
+          resolve(isFinite(lat)&&isFinite(lon)?{lat,lon}:null);
+        } else resolve(null);
+      });
+    });
+  });
+}
+
+async function kakaoGeocodeCandidates(candidates){
+  const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
+  for(const q of unique){
+    const cacheKey='kakao-v18:'+q;
+    if(geoCache.has(cacheKey)){
+      const cached=geoCache.get(cacheKey);
+      // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
+      if(cached && isFinite(Number(cached.lat)) && isFinite(Number(cached.lon))) return cached;
+      geoCache.delete(cacheKey);
+    }
+    const hit=await kakaoGeocodeOnce(q);
+    if(hit){
+      geoCache.set(cacheKey,hit);
+      return hit;
+    }
+  }
+  return null;
+}
+
+async function findSelectedDongSeed(d, groups){
+  const firstGroup=(groups||[]).find(g=>g && g.items && g.items.length);
+  const first=firstGroup ? firstGroup.items[0] : null;
+  const region=first && first.regionQuery ? first.regionQuery : '';
+  const candidates=[];
+
+  // 선택한 동 자체를 가장 먼저 찾습니다.
+  if(region) candidates.push(region);
+  candidates.push(d.fullName);
+
+  // 그 다음 첫 실거래의 도로명/지번 주소로 보정합니다.
+  if(firstGroup && firstGroup.candidates) candidates.push(...firstGroup.candidates);
+
+  return kakaoGeocodeCandidates(candidates);
+}
+
+function fitKakaoMapToMarkers(map, points){
+  if(!points.length)return;
+  if(points.length===1){map.setCenter(new kakao.maps.LatLng(points[0].lat,points[0].lon));map.setLevel(3);return;}
+  const bounds=new kakao.maps.LatLngBounds();
+  points.forEach(p=>bounds.extend(new kakao.maps.LatLng(p.lat,p.lon)));
+  map.setBounds(bounds,60,50,60,50);
+}
+
+function jitterTxnPosition(lat,lon,index,total){
+  if(total<=1) return {lat,lon};
+  const ring=Math.floor(index/8)+1;
+  const angle=(index%8)/8*Math.PI*2 + ring*0.37;
+  const meters=6+ring*5;
+  const dLat=(meters/111320)*Math.sin(angle);
+  const dLon=(meters/(111320*Math.cos(lat*Math.PI/180)))*Math.cos(angle);
+  return {lat:lat+dLat,lon:lon+dLon};
+}
+
+async function renderKakaoDongMap(d, groups, statusEl, progressEl){
+  const key=getKakaoMapKey();
+  const host=document.getElementById('dongTxnMap');
+  if(!host||!key) return false;
+
+  let mapReady=false;
+  try{
+    statusEl.textContent='카카오맵을 연결하는 중이에요...';
+    await loadKakaoMapsApi(key);
+
+    kakaoGeocoder=new kakao.maps.services.Geocoder();
+    kakaoPlaces=new kakao.maps.services.Places();
+
+    host.innerHTML='';
+    host.classList.add('kakao-map-canvas');
+    kakaoMapInstance=new kakao.maps.Map(host,{
+      center:new kakao.maps.LatLng(37.5665,126.9780),
+      level:5
+    });
+    mapReady=true;
+
+    kakaoMapInstance.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
+    kakao.maps.event.addListener(kakaoMapInstance,'click',()=>{
+      if(kakaoInfoOverlay){kakaoInfoOverlay.setMap(null);kakaoInfoOverlay=null;}
+    });
+
+    const totalTxns=groups.reduce((s,g)=>s+g.items.length,0);
+    let shown=0, approximateShown=0, completed=0, failedGroups=0;
+    const points=[];
+
+    // 먼저 실제 선택 동의 첫 거래 주소를 찾아 지도를 즉시 해당 동으로 이동합니다.
+    // 기본 서울시청 좌표가 화면에 남아 "다른 동"처럼 보이는 문제를 막습니다.
+    let dongCenter=null;
+    try{
+      statusEl.textContent=`${d.fullName} 위치를 찾는 중...`;
+      dongCenter=await findSelectedDongSeed(d,groups);
+      if(dongCenter){
+        kakaoMapInstance.setCenter(new kakao.maps.LatLng(dongCenter.lat,dongCenter.lon));
+        kakaoMapInstance.setLevel(5);
+      }
+    }catch(err){}
+
+    // 너무 많은 동시 요청은 오히려 실패를 늘릴 수 있어 6개로 제한합니다.
+    const concurrency=Math.min(6,Math.max(3,Number(navigator.hardwareConcurrency)||4));
+    let cursor=0;
+
+    const drawGroup=async(i)=>{
+      const g=groups[i];
+      try{
+        let geo=null;
+        try{
+          geo=await kakaoGeocodeCandidates(g.candidates);
+        }catch(err){
+          console.error('Kakao geocode error:', err);
+        }
+
+        let approximate=false;
+        if(!geo && dongCenter){
+          const ring=Math.floor(i/12)+1;
+          const angle=(i%12)/12*Math.PI*2 + ring*0.21;
+          const meters=35+ring*18;
+          geo={
+            lat:dongCenter.lat + (meters/111320)*Math.sin(angle),
+            lon:dongCenter.lon + (meters/(111320*Math.cos(dongCenter.lat*Math.PI/180)))*Math.cos(angle)
+          };
+          approximate=true;
+        }
+
+        if(geo){
+          const ordered=[...g.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
+          for(let j=0;j<ordered.length;j++){
+            const t=ordered[j];
+            try{
+              const pos=jitterTxnPosition(geo.lat,geo.lon,j,ordered.length);
+              const color=kakaoMarkerColor(t.price);
+              const markerEl=document.createElement('div');
+              markerEl.className='kakao-price-marker';
+              markerEl.title=approximate?'주소 좌표 확인 필요 · '+fmtDealDate(t):`${t.building||''} ${fmtPrice(t.price)} ${fmtDealDate(t)}`;
+              markerEl.innerHTML=`<div class="kakao-price-marker-label" style="background:${color};${approximate?'border-style:dashed;':''}">${shortMapPrice(t.price)}</div><div class="kakao-price-marker-dot" style="background:${color}"></div>`;
+
+              const markerPos=new kakao.maps.LatLng(pos.lat,pos.lon);
+              const overlay=new kakao.maps.CustomOverlay({
+                position:markerPos,
+                content:markerEl,
+                yAnchor:1,
+                zIndex:1000+j
+              });
+              overlay.setMap(kakaoMapInstance);
+
+              markerEl.addEventListener('click',(ev)=>{
+                ev.stopPropagation();
+                if(kakaoInfoOverlay) kakaoInfoOverlay.setMap(null);
+                const infoEl=document.createElement('div');
+                const isMobilePopup=window.innerWidth<=640;
+                infoEl.className='kakao-info-overlay '+(isMobilePopup?'below':'right');
+                infoEl.innerHTML=buildKakaoTxnInfo(t,approximate);
+                infoEl.addEventListener('click',e=>e.stopPropagation());
+                kakaoInfoOverlay=new kakao.maps.CustomOverlay({
+                  position:markerPos,
+                  content:infoEl,
+                  xAnchor:isMobilePopup?0.5:0,
+                  yAnchor:isMobilePopup?0:0.12,
+                  zIndex:99999
+                });
+                kakaoInfoOverlay.setMap(kakaoMapInstance);
+                kakaoMapInstance.panTo(markerPos);
+
+                // 모바일: 팝업을 실거래 마커의 실제 보이는 하단에 3px 간격으로 바짝 붙임
+                if(isMobilePopup){
+                  const snapPopupToMarker=()=>{
+                    const mr=markerEl.getBoundingClientRect();
+                    const ir=infoEl.getBoundingClientRect();
+                    if(!mr.width || !ir.width) return;
+                    const gap=3;
+                    const dy=(mr.bottom+gap)-ir.top;
+                    infoEl.style.transform=`translateY(${dy}px)`;
+                  };
+                  requestAnimationFrame(()=>requestAnimationFrame(snapPopupToMarker));
+                  setTimeout(snapPopupToMarker,120);
+                }
+              });
+
+              kakaoOverlays.push(overlay);
+              points.push(pos);
+              shown++;
+              if(approximate) approximateShown++;
+            }catch(markerErr){
+              // 한 거래의 표시 오류가 전체 지도를 중단시키지 않게 합니다.
+            }
+          }
+        }else{
+          failedGroups++;
+        }
+      }catch(groupErr){
+        failedGroups++;
+      }finally{
+        completed++;
+        if(progressEl) progressEl.style.width=Math.round((completed/groups.length)*100)+'%';
+        statusEl.textContent=`${d.fullName} 불러오는 중 ${completed}/${groups.length} · 실거래 ${shown.toLocaleString()}/${totalTxns.toLocaleString()}건 표시`;
+      }
+    };
+
+    const worker=async()=>{
+      while(true){
+        const i=cursor++;
+        if(i>=groups.length) return;
+        await drawGroup(i);
+      }
+    };
+
+    await Promise.all(
+      Array.from({length:Math.min(concurrency,groups.length)},()=>worker())
+    );
+
+    saveGeoCache();
+    if(progressEl) progressEl.style.width='100%';
+    currentKakaoMapPoints=[...points];
+
+    try{
+      if(points.length) fitKakaoMapToMarkers(kakaoMapInstance,points);
+    }catch(err){}
+
+    let msg=`${d.fullName} 전체 실거래 ${totalTxns.toLocaleString()}건 중 ${shown.toLocaleString()}건을 카카오맵에 표시했어요. `;
+    msg+='금액표시를 누르면 건물명·주소·전용면적·거래금액·거래일자·층수·준공일자/년도를 볼 수 있습니다.';
+    if(approximateShown) msg+=` 주소 좌표를 찾지 못한 ${approximateShown.toLocaleString()}건은 점선 금액표시로 임시 배치했습니다.`;
+    if(failedGroups) msg+=` 위치 확인이 안 된 주소 ${failedGroups.toLocaleString()}곳은 표시하지 않았습니다.`;
+    if(!shown && groups[0] && groups[0].candidates){ msg+=` 첫 주소 확인값: ${escapeHtml(String(groups[0].candidates.find(Boolean)||'-'))}`; }
+    statusEl.textContent=msg;
+    return true;
+
+  }catch(err){
+    const msg=(err&&err.message)?err.message:String(err);
+    statusEl.innerHTML='카카오맵 실행 오류: <b>'+escapeHtml(msg)+'</b>';
+    if(progressEl) progressEl.style.width='100%';
+
+    // 카카오 지도가 이미 생성된 뒤 일부 처리 중 오류라면
+    // 느린 예비지도로 되돌아가지 않고 현재 지도를 유지합니다.
+    return mapReady;
+  }
+}
+
+function kakaoMapSetupHtml(){
+  if(getKakaoMapKey()){
+    return ``;
+  }
+  return `<div class="kakao-map-setup" id="kakaoMapSetup">
+    <div class="kakao-map-setup-title">카카오맵 설정이 아직 완료되지 않았어요</div>
+    <div class="kakao-map-setup-desc">Kakao Developers의 JavaScript 키와 SDK 도메인을 확인해주세요.</div>
+  </div>`;
+}
+
+function bindKakaoMapSetup(d){}
+
+function toggleDongMapFullscreen(force){
+  const wrap=document.querySelector('.txn-map-wrap');
+  if(!wrap) return;
+  const next=typeof force==='boolean' ? force : !wrap.classList.contains('map-fullscreen');
+  wrap.classList.toggle('map-fullscreen',next);
+  document.body.classList.toggle('map-modal-open',next);
+  const btn=document.getElementById('expandDongMapBtn');
+  if(btn) btn.textContent=next?'✕ 큰 지도 닫기':'⛶ 지도 크게 보기';
+  setTimeout(()=>{
+    try{
+      if(kakaoMapInstance){
+        kakaoMapInstance.relayout();
+        if(currentKakaoMapPoints.length) fitKakaoMapToMarkers(kakaoMapInstance,currentKakaoMapPoints);
+      }else if(miniMapState){
+        renderMiniMap();
+      }
+    }catch(err){}
+  },180);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && document.querySelector('.txn-map-wrap.map-fullscreen')) toggleDongMapFullscreen(false);
+});
+
+function shortMapPrice(manwon){
+  if(manwon >= 10000){
+    const e = manwon/10000;
+    return (Math.round(e*10)/10).toString().replace('.0','')+'억';
+  }
+  return Math.round(manwon).toLocaleString()+'만';
+}
+
+function priceBand(manwon){
+  if(manwon < 20000) return 1;      // 2억 미만
+  if(manwon < 30000) return 2;      // 2억~3억 미만
+  if(manwon < 40000) return 3;      // 3억~4억 미만
+  if(manwon < 50000) return 4;      // 4억~5억 미만
+  return 5;                         // 5억 이상
+}
+
+function fmtCompletion(t){
+  if(!t) return '-';
+  const raw=String(t.completionDate || '').trim();
+  if(raw && raw !== '-' && raw !== '0'){
+    const digits=raw.replace(/[^0-9]/g,'');
+    if(digits.length===8) return `${digits.slice(0,4)}.${digits.slice(4,6)}.${digits.slice(6,8)}`;
+    if(digits.length===6) return `${digits.slice(0,4)}.${digits.slice(4,6)}`;
+    return raw;
+  }
+  return t.builtYear ? `${t.builtYear}년` : '-';
+}
+
+function priceLegendHtml(){
+  return `<div class="map-price-legend">
+    <span><i style="background:#2F6FED"></i>2억 미만</span>
+    <span><i style="background:#1F9D6B"></i>2~3억</span>
+    <span><i style="background:#E59B24"></i>3~4억</span>
+    <span><i style="background:#E05A47"></i>4~5억</span>
+    <span><i style="background:#7A4FB3"></i>5억 이상</span>
+  </div>`;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function loadGeoCache(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('villaGeoCacheV3') || '{}');
+    for(const [k,v] of Object.entries(saved)) geoCache.set(k,v);
+  }catch(err){}
+}
+function saveGeoCache(){
+  try{
+    const obj={};
+    for(const [k,v] of geoCache.entries()) obj[k]=v;
+    localStorage.setItem('villaGeoCacheV3', JSON.stringify(obj));
+  }catch(err){}
+}
+loadGeoCache();
+
+function jsonpNominatim(query){
+  return new Promise(resolve=>{
+    const cb='__villa_geo_'+Date.now()+'_'+(++geoJsonpSeq);
+    const script=document.createElement('script');
+    let done=false;
+    const finish=(val)=>{
+      if(done) return; done=true;
+      try{ delete window[cb]; }catch(err){ window[cb]=undefined; }
+      script.remove();
+      resolve(val);
+    };
+    window[cb]=(data)=>{
+      const hit=Array.isArray(data)&&data.length ? {lat:Number(data[0].lat),lon:Number(data[0].lon)} : null;
+      finish(hit && isFinite(hit.lat) && isFinite(hit.lon) ? hit : null);
+    };
+    script.onerror=()=>finish(null);
+    script.src='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=kr&accept-language=ko&json_callback='+encodeURIComponent(cb)+'&q='+encodeURIComponent(query);
+    document.head.appendChild(script);
+    setTimeout(()=>finish(null),12000);
+  });
+}
+
+async function geocodeAddressCandidates(candidates){
+  for(const q0 of candidates){
+    const q=String(q0||'').trim();
+    if(!q) continue;
+    if(geoCache.has(q)){
+      const cached=geoCache.get(q);
+      if(cached) return cached;
+      continue;
+    }
+    const hit=await jsonpNominatim(q);
+    geoCache.set(q,hit);
+    saveGeoCache();
+    if(hit) return hit;
+    await sleep(1050);
+  }
+  return null;
+}
+
+function lonToWorldX(lon,z){ return (lon+180)/360 * 256*Math.pow(2,z); }
+function latToWorldY(lat,z){
+  const clamped=Math.max(-85.05112878,Math.min(85.05112878,lat));
+  const s=Math.sin(clamped*Math.PI/180);
+  return (0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*256*Math.pow(2,z);
+}
+function worldXToLon(x,z){ return x/(256*Math.pow(2,z))*360-180; }
+function worldYToLat(y,z){
+  const n=Math.PI-2*Math.PI*y/(256*Math.pow(2,z));
+  return 180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));
+}
+
+function buildMarkerPopup(group){
+  const items=[...group.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
+  return `
+    <button class="mini-map-popup-close" type="button" aria-label="닫기">×</button>
+    <div class="mini-map-popup-title">${escapeHtml(group.label)}</div>
+    <div class="mini-map-popup-sub">실거래 ${items.length.toLocaleString()}건</div>
+    ${items.map(t=>`
+      <div class="mini-map-popup-item">
+        <div class="map-popup-building">건물명 <b>${escapeHtml(t.building || '-')}</b></div>
+        <div class="map-popup-address">주소 <b>${escapeHtml(txnAddress(t))}</b></div>
+        <div class="mini-map-popup-date">거래일자 ${fmtDealDate(t)}</div>
+        <div>전용면적 <b>${t.area.toFixed(1)}㎡</b></div>
+        <div>층수 <b>${t.floor!==''&&t.floor!=null?t.floor+'층':'-'}</b></div>
+        <div>준공일자/년도 <b>${fmtCompletion(t)}</b></div>
+        <div class="mini-map-popup-price price-text-${priceBand(t.price)}">거래금액 ${fmtPrice(t.price)}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function fitMiniMap(state){
+  const pts=state.points;
+  if(!pts.length) return;
+  const w=state.el.clientWidth||320,h=state.el.clientHeight||360;
+  let chosen=17;
+  for(let z=18;z>=11;z--){
+    const xs=pts.map(p=>lonToWorldX(p.lon,z)), ys=pts.map(p=>latToWorldY(p.lat,z));
+    const spanX=Math.max(...xs)-Math.min(...xs), spanY=Math.max(...ys)-Math.min(...ys);
+    if(spanX <= w-90 && spanY <= h-90){ chosen=z; break; }
+  }
+  state.zoom=chosen;
+  const xs=pts.map(p=>lonToWorldX(p.lon,chosen)), ys=pts.map(p=>latToWorldY(p.lat,chosen));
+  state.centerX=(Math.max(...xs)+Math.min(...xs))/2;
+  state.centerY=(Math.max(...ys)+Math.min(...ys))/2;
+}
+
+function renderMiniMap(){
+  const state=miniMapState;
+  if(!state||!state.el) return;
+  const el=state.el,w=el.clientWidth||320,h=el.clientHeight||360,z=state.zoom;
+  const tileLayer=el.querySelector('.mini-map-tiles');
+  const markerLayer=el.querySelector('.mini-map-markers');
+  if(!tileLayer||!markerLayer) return;
+  tileLayer.innerHTML=''; markerLayer.innerHTML='';
+  const left=state.centerX-w/2, top=state.centerY-h/2;
+  const firstTX=Math.floor(left/256)-1,lastTX=Math.floor((left+w)/256)+1;
+  const firstTY=Math.floor(top/256)-1,lastTY=Math.floor((top+h)/256)+1;
+  const n=Math.pow(2,z);
+  for(let tx=firstTX;tx<=lastTX;tx++){
+    for(let ty=firstTY;ty<=lastTY;ty++){
+      if(ty<0||ty>=n) continue;
+      const wrapX=((tx%n)+n)%n;
+      const img=document.createElement('img');
+      img.className='mini-map-tile';
+      img.draggable=false;
+      img.src=`https://a.basemaps.cartocdn.com/light_nolabels/${z}/${wrapX}/${ty}.png`;
+      img.style.left=(tx*256-left)+'px'; img.style.top=(ty*256-top)+'px';
+      tileLayer.appendChild(img);
+    }
+  }
+  for(const p of state.points){
+    const x=lonToWorldX(p.lon,z)-left, y=latToWorldY(p.lat,z)-top;
+    if(x<-90||y<-90||x>w+90||y>h+90) continue;
+    const latest=[...p.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)))[0];
+    const mk=document.createElement('div');
+    const band=priceBand(latest.price);
+    mk.className='mini-map-marker price-band-'+band;
+    mk.style.left=x+'px'; mk.style.top=y+'px';
+    mk.innerHTML=`<div class="mini-map-marker-label">${shortMapPrice(latest.price)}${p.items.length>1?' · '+p.items.length+'건':''}</div><div class="mini-map-marker-dot price-dot-${band}"></div>`;
+    mk.onclick=(ev)=>{ev.stopPropagation();showMiniMapPopup(p,x,y);};
+    markerLayer.appendChild(mk);
+  }
+}
+
+function showMiniMapPopup(group,x,y){
+  const state=miniMapState;if(!state) return;
+  const old=state.el.querySelector('.mini-map-popup'); if(old) old.remove();
+  const pop=document.createElement('div');pop.className='mini-map-popup';
+  pop.style.left=x+'px';pop.style.top=y+'px';pop.innerHTML=buildMarkerPopup(group);
+  pop.querySelector('.mini-map-popup-close').onclick=(e)=>{e.stopPropagation();pop.remove();};
+  pop.onclick=e=>e.stopPropagation();
+  state.el.appendChild(pop);
+}
+
+function setupMiniMapInteractions(state){
+  const el=state.el;
+  let dragging=false,sx=0,sy=0,cx=0,cy=0;
+  el.onpointerdown=(e)=>{if(e.target.closest('.mini-map-control,.mini-map-marker,.mini-map-popup'))return;dragging=true;sx=e.clientX;sy=e.clientY;cx=state.centerX;cy=state.centerY;el.setPointerCapture?.(e.pointerId);};
+  el.onpointermove=(e)=>{if(!dragging)return;state.centerX=cx-(e.clientX-sx);state.centerY=cy-(e.clientY-sy);renderMiniMap();};
+  el.onpointerup=()=>{dragging=false;};
+  el.onclick=()=>{const p=el.querySelector('.mini-map-popup');if(p)p.remove();};
+  const zin=el.querySelector('[data-map-zoom="in"]'),zout=el.querySelector('[data-map-zoom="out"]'),fit=el.querySelector('[data-map-fit="all"]');
+  if(zin) zin.onclick=(e)=>{e.stopPropagation();if(state.zoom<20){const lon=worldXToLon(state.centerX,state.zoom),lat=worldYToLat(state.centerY,state.zoom);state.zoom++;state.centerX=lonToWorldX(lon,state.zoom);state.centerY=latToWorldY(lat,state.zoom);renderMiniMap();}};
+  if(zout) zout.onclick=(e)=>{e.stopPropagation();if(state.zoom>10){const lon=worldXToLon(state.centerX,state.zoom),lat=worldYToLat(state.centerY,state.zoom);state.zoom--;state.centerX=lonToWorldX(lon,state.zoom);state.centerY=latToWorldY(lat,state.zoom);renderMiniMap();}};
+  if(fit) fit.onclick=(e)=>{e.stopPropagation();fitMiniMap(state);renderMiniMap();};
+}
+
+async function renderDongTxnMap(d){
+  const mapEl=document.getElementById('dongTxnMap');
+  const statusEl=document.getElementById('dongTxnMapStatus');
+  const progressEl=document.getElementById('dongTxnMapProgressBar');
+  if(!mapEl||!statusEl) return;
+  cleanupDongMap();
+
+  const txns=allRecords.filter(r=>r.fullName===d.fullName).sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
+  const groupedMap=new Map();
+  for(const t of txns){
+    const key=(t.lotQuery||t.roadQuery||t.addressQuery||t.fullName).trim();
+    const label=t.road?`${t.gu} ${t.dong} · ${t.road}`:(t.lot?`${t.gu} ${t.dong} ${t.lot}`:t.fullName);
+    if(!groupedMap.has(key)) groupedMap.set(key,{key,label,items:[],candidates:[t.roadQuery,t.lotQuery,t.addressQuery,(t.building?`${t.regionQuery||t.fullName} ${t.building}`:''),t.regionQuery,t.fullName]});
+    groupedMap.get(key).items.push(t);
+  }
+  const groups=[...groupedMap.values()];
+
+  if(getKakaoMapKey()){
+    // 카카오 설정이 있는 경우에는 느린 OSM 예비지도로 되돌아가지 않습니다.
+    // 오류가 있으면 카카오 지도 영역에 원인을 그대로 표시합니다.
+    await renderKakaoDongMap(d,groups,statusEl,progressEl);
+    return;
+  }
+
+  // 카카오맵 키가 없을 때만 기존 간편지도를 사용합니다.
+  mapEl.classList.remove('kakao-map-canvas');
+  mapEl.innerHTML='<div class="mini-map-tiles"></div><div class="mini-map-markers"></div><div class="mini-map-controls"><button type="button" class="mini-map-control" data-map-zoom="in" aria-label="확대">+</button><button type="button" class="mini-map-control" data-map-zoom="out" aria-label="축소">−</button><button type="button" class="mini-map-control fit" data-map-fit="all">전체거래 보기</button></div><div class="mini-map-credit">© OpenStreetMap © CARTO · 상점명 숨김 분석지도</div>';
+  miniMapState={el:mapEl,points:[],zoom:14,centerX:lonToWorldX(126.978,14),centerY:latToWorldY(37.5665,14)};
+  setupMiniMapInteractions(miniMapState);renderMiniMap();
+  statusEl.textContent=getKakaoMapKey()?`${d.fullName} · 상점/가게 이름을 뺀 깔끔한 분석지도로 표시합니다. 금액표시를 눌러 상세 거래를 보세요.`:`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 · 깔끔한 분석지도로 표시합니다.`;
+
+  let success=0,failed=0;
+  for(let i=0;i<groups.length;i++){
+    const g=groups[i];
+    const pct=Math.round((i/groups.length)*100); if(progressEl)progressEl.style.width=pct+'%';
+    statusEl.textContent=`${d.fullName} 실거래 위치 불러오는 중 ${i+1}/${groups.length} · 현재 ${success.toLocaleString()}/${txns.length.toLocaleString()}건 표시`;
+    const geo=await geocodeAddressCandidates(g.candidates);
+    if(geo){
+      const ordered=[...g.items].sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
+      ordered.forEach((t,j)=>{
+        const pos=jitterTxnPosition(geo.lat,geo.lon,j,ordered.length);
+        miniMapState.points.push({key:g.key+'-'+j,label:g.label,items:[t],lat:pos.lat,lon:pos.lon});
+      });
+      success+=ordered.length;
+      fitMiniMap(miniMapState);renderMiniMap();
+    }
+    else failed+=g.items.length;
+    if(i<groups.length-1) await sleep(1050);
+  }
+  if(progressEl)progressEl.style.width='100%';
+  if(success){fitMiniMap(miniMapState);renderMiniMap();}
+  let msg=`${d.fullName} 실거래 ${txns.length.toLocaleString()}건 중 ${success.toLocaleString()}건을 지도에 표시했어요. `;
+  msg+=getKakaoMapKey()?'카카오맵 JavaScript 키와 SDK 도메인 설정을 확인해주세요.':'카카오맵 설정을 확인해주세요.';
+  if(failed)msg+=` 위치를 찾지 못한 실거래 ${failed.toLocaleString()}건은 아래 전체 실거래표에서 확인할 수 있어요.`;
+  statusEl.textContent=msg;
+}
+
+function activateDetailCard(d, card){
+  cleanupDongMap();
+  card.innerHTML=buildRichDetail(d);
+  const tbtn=document.getElementById('dongTxnToggle');
+  if(tbtn){tbtn.onclick=()=>{const wrap=document.getElementById('dongTxnWrap');const showing=wrap.style.display!=='none';wrap.style.display=showing?'none':'block';tbtn.textContent=showing?'📋 전체 실거래 내역 보기':'🙈 내역 접기';};}
+  const expandBtn=document.getElementById('expandDongMapBtn');
+  if(expandBtn) expandBtn.onclick=()=>toggleDongMapFullscreen();
+  renderDongTxnMap(d);
+}
+
+function renderAll(records, fileName, canceledCount){
+  allRecords = records;
+  document.getElementById('uploadSection').style.display='none';
+  resultsEl.style.display='block';
+  let info = fileName+' · 총 '+records.length.toLocaleString()+'건 거래 · '+aggregated.length.toLocaleString()+'개 행정동';
+  if(canceledCount > 0){ info += ' · 계약해제 '+canceledCount.toLocaleString()+'건 제외'; }
+  document.getElementById('fileInfo').textContent = info;
+
+  const totalCount = records.length;
+  const avgArea = records.reduce((s,r)=>s+r.area,0)/totalCount;
+  const avgPrice = records.reduce((s,r)=>s+r.price,0)/totalCount;
+  const withAge = records.filter(r=>r.age!==null);
+  const avgAge = withAge.length ? withAge.reduce((s,r)=>s+r.age,0)/withAge.length : null;
+
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat"><div class="label">총 거래건수</div><div class="value"><em>${totalCount.toLocaleString()}</em>건</div></div>
+    <div class="stat"><div class="label">평균 집 크기<span class="info-icon">ⓘ<span class="bubble">집 안에서 실제로 쓰는 공간의 넓이예요. 3.3㎡ ≈ 1평</span></span></div><div class="value">${avgArea.toFixed(1)}㎡</div></div>
+    <div class="stat"><div class="label">평균 거래금액<span class="info-icon">ⓘ<span class="bubble">실제로 사고판 금액이에요</span></span></div><div class="value">${fmtPrice(avgPrice)}</div></div>
+    <div class="stat"><div class="label">평균 지어진 연수<span class="info-icon">ⓘ<span class="bubble">집이 지어지고 나서 지금까지 지난 햇수예요</span></span></div><div class="value">${avgAge!==null ? avgAge.toFixed(1)+'년' : '-'}</div></div>
+  `;
+
+  const top10 = [...aggregated].sort((a,b)=>b.count-a.count).slice(0,10);
+  const maxCount = top10[0].count;
+  document.getElementById('top10Box').innerHTML = top10.map((d,i)=>`
+    <div class="top10-row click-dong-row show-dong-detail" data-dong="${encodeURIComponent(d.fullName)}" title="눌러서 ${d.fullName} 실거래 지도를 보기">
+      <div class="top10-rank">${i+1}</div>
+      <div class="top10-name">${d.fullName} 📍</div>
+      <div class="top10-bar-track"><div class="top10-bar-fill" style="width:${(d.count/maxCount*100).toFixed(1)}%"></div></div>
+      <div class="top10-count">${d.count.toLocaleString()}건 <span class="top10-open-map">지도보기 ›</span></div>
+    </div>
+  `).join('');
+
+  populateTrendDongOptions();
+  renderTrend(records, '__all__');
+  document.getElementById('trendDongSelect').onchange = (e)=>{
+    renderTrend(records, e.target.value);
+  };
+
+  renderTable();
+
+  const searchInput = document.getElementById('dongSearch');
+  searchInput.value = '';
+  document.getElementById('detailCard').classList.remove('show');
+  searchInput.oninput = ()=>{
+    const q = searchInput.value.trim();
+    const card = document.getElementById('detailCard');
+    if(!q){ cleanupDongMap(); card.classList.remove('show'); return; }
+    const matches = aggregated.filter(d => d.dong.includes(q) || d.fullName.includes(q));
+    if(matches.length === 0){
+      cleanupDongMap();
+      card.classList.add('show');
+      card.innerHTML = '<div class="empty-msg" style="color:#C7CEDE;">일치하는 행정동이 없어요. 동 이름 일부만 입력해도 검색돼요. (예: 상계)</div>';
+      return;
+    }
+    if(matches.length === 1){
+      card.classList.add('show');
+      activateDetailCard(matches[0], card);
+      return;
+    }
+    cleanupDongMap();
+    card.classList.add('show');
+    card.innerHTML = matches.map(d=>`
+      <div class="dong-name"><a class="dong-map-link show-dong-detail" href="#" data-dong="${encodeURIComponent(d.fullName)}" title="이 지역 실거래 위치 보기">${d.fullName} 📍</a></div>
+      <div class="detail-grid">
+        <div><div class="k">거래건수</div><div class="v"><em>${d.count.toLocaleString()}</em>건</div></div>
+        <div><div class="k">평균 거래금액</div><div class="v">${fmtPrice(d.avgPrice)}</div></div>
+        <div><div class="k">평단가</div><div class="v">${d.avgPricePerPyeong!==null ? fmtPrice(d.avgPricePerPyeong)+'/평' : '-'}</div></div>
+        <div><div class="k">평균 집 크기</div><div class="v">${d.avgArea.toFixed(1)}㎡</div></div>
+        <div><div class="k">지어진 지</div><div class="v">${d.avgAge!==null ? d.avgAge.toFixed(1)+'년' : '-'}</div></div>
+      </div>
+    `).join('<div style="height:14px;"></div>');
+  };
+
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.onclick = (e)=>{
+      if(e.target.closest('.info-icon')) return;
+      const key = th.dataset.key;
+      if(sortKey === key){ sortDir *= -1; } else { sortKey = key; sortDir = key==='dong' ? 1 : -1; }
+      renderTable();
+    };
+  });
+}
+
+function showDongDetail(fullName){
+  const d = aggregated.find(x=>x.fullName===fullName);
+  if(!d) return;
+  const searchInput = document.getElementById('dongSearch');
+  const card = document.getElementById('detailCard');
+  searchInput.value = d.fullName;
+  card.classList.add('show');
+  activateDetailCard(d, card);
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.addEventListener('click', (e)=>{
+  const link = e.target.closest('.show-dong-detail');
+  if(!link) return;
+  e.preventDefault();
+  showDongDetail(decodeURIComponent(link.dataset.dong || ''));
+});
+
+function populateTrendDongOptions(){
+  const sel = document.getElementById('trendDongSelect');
+  const opts = [...aggregated].sort((a,b)=>b.count-a.count)
+    .map(d=>`<option value="${d.fullName}">${d.fullName} (${d.count.toLocaleString()}건)</option>`).join('');
+  sel.innerHTML = '<option value="__all__">전체 지역</option>' + opts;
+}
+
+function renderTrend(records, filterDong){
+  const filtered = (filterDong && filterDong !== '__all__') ? records.filter(r=>r.fullName===filterDong) : records;
+  const map = new Map();
+  for(const r of filtered){
+    if(!r.month) continue;
+    map.set(r.month, (map.get(r.month) || 0) + 1);
+  }
+  const months = Array.from(map.keys()).sort((a,b)=>a-b);
+  if(months.length === 0){
+    document.getElementById('trendBox').innerHTML = '<div class="empty-msg">해당 지역의 월별 거래 정보가 없어요.</div>';
+    return;
+  }
+  const maxCount = Math.max(...months.map(m=>map.get(m)));
+  const bars = months.map(m=>{
+    const y = Math.floor(m/100), mo = m%100;
+    const count = map.get(m);
+    const h = Math.max(3, Math.round(count/maxCount*100));
+    return `
+      <div class="trend-bar-wrap">
+        <div class="trend-count">${count.toLocaleString()}</div>
+        <div class="trend-bar" style="height:${h}%"></div>
+        <div class="trend-label">${String(y).slice(2)}.${String(mo).padStart(2,'0')}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('trendBox').innerHTML = `<div class="trend-scroll"><div class="trend-chart">${bars}</div></div>`;
+}
+
+const PIE_COLORS = ['#E8742C','#8FA3D6','#F2985F','#5B698F','#C9C2B4'];
+
+function buildDonut(counts){
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const total = entries.reduce((s,[,v])=>s+v,0);
+  if(total === 0) return {gradient:'#3A4668', legend:'<div class="empty-msg" style="color:#B6BFD4;">데이터 없음</div>'};
+  let acc = 0;
+  const stops = entries.map(([label,count],i)=>{
+    const start = acc/total*360;
+    acc += count;
+    const end = acc/total*360;
+    return `${PIE_COLORS[i%PIE_COLORS.length]} ${start.toFixed(1)}deg ${end.toFixed(1)}deg`;
+  }).join(', ');
+  const legend = entries.map(([label,count],i)=>`
+    <div class="pie-legend-row">
+      <span class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]}"></span>
+      <span class="pie-legend-label">${label}</span>
+      <span class="pie-legend-val">${count.toLocaleString()}건 (${(count/total*100).toFixed(0)}%)</span>
+    </div>
+  `).join('');
+  return {gradient:`conic-gradient(${stops})`, legend};
+}
+
+function buildRichDetail(d){
+  const housePie = buildDonut(d.houseType);
+  const dealPie = buildDonut(d.dealType);
+  const txns = allRecords.filter(r=>r.fullName===d.fullName)
+    .sort((a,b)=>(b.month-a.month) || ((Number(b.day)||0)-(Number(a.day)||0)));
+
+  const summaryCards = txns.map(t=>`
+    <a class="txn-summary-item" href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer" title="이 실거래 위치를 지도에서 보기">
+      <div class="txn-summary-row"><span class="txn-summary-label">건물명</span><span class="txn-summary-value">${escapeHtml(t.building || '-')}</span></div>
+      <div class="txn-summary-row address"><span class="txn-summary-label">주소</span><span class="txn-summary-value">${escapeHtml(txnAddress(t))}</span></div>
+      <div class="txn-summary-row"><span class="txn-summary-label">전용면적</span><span class="txn-summary-value">${t.area.toFixed(1)}㎡</span></div>
+      <div class="txn-summary-row"><span class="txn-summary-label">거래금액</span><span class="txn-summary-value price-text-${priceBand(t.price)}">${fmtPrice(t.price)}</span></div>
+      <div class="txn-summary-row"><span class="txn-summary-label">층수</span><span class="txn-summary-value">${t.floor!=='' && t.floor!=null ? t.floor+'층' : '-'}</span></div>
+      <div class="txn-summary-row"><span class="txn-summary-label">준공일자/년도</span><span class="txn-summary-value">${fmtCompletion(t)}</span></div>
+      <div class="txn-summary-row"><span class="txn-summary-label">거래일자</span><span class="txn-summary-value">${fmtDealDate(t)}</span></div>
+      <div class="txn-summary-mapcue">📍 이 실거래 클릭 → 지도보기</div>
+    </a>
+  `).join('');
+
+  const rows = txns.map(t=>`
+    <tr class="click-map-row" data-map-url="${kakaoMapUrl(t.addressQuery || d.fullName)}" title="클릭하면 이 실거래 위치가 지도에서 열립니다">
+      <td data-label="건물명">${escapeHtml(t.building || '-')}</td>
+      <td data-label="주소"><a class="txn-address-link" href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(txnAddress(t))} 📍</a></td>
+      <td data-label="전용면적">${t.area.toFixed(1)}㎡</td>
+      <td data-label="거래금액"><b class="price-text-${priceBand(t.price)}">${fmtPrice(t.price)}</b></td>
+      <td data-label="층수">${t.floor!=='' && t.floor!=null ? t.floor+'층' : '-'}</td>
+      <td data-label="준공일자/년도">${fmtCompletion(t)}</td>
+      <td data-label="거래일자"><b>${fmtDealDate(t)}</b></td>
+      <td data-label="지도" class="txn-map-actions"><span><a href="${kakaoMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">카카오</a><a href="${naverMapUrl(t.addressQuery || d.fullName)}" target="_blank" rel="noopener noreferrer">네이버</a></span></td>
+    </tr>
+  `).join('');
+
+  const latest = txns.length ? fmtDealDate(txns[0]) : '-';
+
+  return `
+    <div class="dong-name">${d.fullName} <span style="color:#F4B48C;font-size:12px;">실거래 지도</span></div>
+    <div class="detail-grid detail-grid-5">
+      <div><div class="k">거래건수</div><div class="v"><em>${d.count.toLocaleString()}</em>건</div></div>
+      <div><div class="k">최근 거래일</div><div class="v">${latest}</div></div>
+      <div><div class="k">평균 거래금액</div><div class="v">${fmtPrice(d.avgPrice)}</div></div>
+      <div><div class="k">평단가</div><div class="v">${d.avgPricePerPyeong!==null ? fmtPrice(d.avgPricePerPyeong)+'/평' : '-'}</div></div>
+      <div><div class="k">평균 집 크기</div><div class="v">${d.avgArea.toFixed(1)}㎡</div></div>
+    </div>
+
+    ${kakaoMapSetupHtml()}
+
+    <div class="txn-map-wrap">
+      <div class="txn-map-title">🗺 ${d.fullName} 동별 실거래 지도</div>
+      <div class="txn-map-toolbar">
+        <button type="button" class="primary" id="expandDongMapBtn">⛶ 지도 크게 보기</button>
+      </div>
+      <div class="txn-map-note">금액표시 하나가 실거래 1건입니다. 금액을 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자를 자세히 볼 수 있습니다.</div>
+      ${priceLegendHtml()}
+      <div id="dongTxnMapStatus" class="txn-map-status">지도를 준비하는 중이에요...</div>
+      <div class="txn-map-progress"><div id="dongTxnMapProgressBar" class="txn-map-progress-bar"></div></div>
+      <div id="dongTxnMap" class="txn-map-canvas"></div>
+    </div>
+
+    <div class="txn-location-section">
+      <div class="txn-location-title">📍 전체 실거래</div>
+      <div class="txn-location-note">각 실거래마다 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자 제목과 값을 모두 표시해요. 실거래를 누르면 해당 주소가 지도에서 열립니다.</div>
+      <div class="txn-summary-list">${summaryCards || '<div class="empty-msg" style="color:#C7CEDE;">표시할 실거래가 없어요.</div>'}</div>
+    </div>
+
+    <div class="pie-row">
+      <div class="pie-block">
+        <div class="pie-title">주택유형 비율</div>
+        <div class="pie-flex">
+          <div class="donut" style="background:${housePie.gradient}"></div>
+          <div class="pie-legend">${housePie.legend}</div>
+        </div>
+      </div>
+      <div class="pie-block">
+        <div class="pie-title">거래유형 비율</div>
+        <div class="pie-flex">
+          <div class="donut" style="background:${dealPie.gradient}"></div>
+          <div class="pie-legend">${dealPie.legend}</div>
+        </div>
+      </div>
+    </div>
+    <button id="dongTxnToggle" class="table-toggle-btn dong-txn-toggle">📋 전체 실거래 표로 보기</button>
+    <div id="dongTxnWrap" style="display:none;">
+      <div class="table-scroll dong-txn-scroll">
+        <table style="min-width:1080px;">
+          <thead>
+            <tr><th>건물명</th><th>주소</th><th>전용면적</th><th>거래금액</th><th>층수</th><th>준공일자/년도</th><th>거래일자</th><th>지도</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+
+
+document.addEventListener('click', (e)=>{
+  const row=e.target.closest('.click-map-row');
+  if(!row || e.target.closest('a')) return;
+  const url=row.dataset.mapUrl;
+  if(url) window.open(url,'_blank','noopener');
+});
+
+function renderTable(){
+  const sorted = [...aggregated].sort((a,b)=>{
+    let av, bv;
+    if(sortKey==='dong'){ av=a.fullName; bv=b.fullName; return sortDir*av.localeCompare(bv,'ko'); }
+    if(sortKey==='count'){ av=a.count; bv=b.count; }
+    if(sortKey==='avgArea'){ av=a.avgArea; bv=b.avgArea; }
+    if(sortKey==='avgPrice'){ av=a.avgPrice; bv=b.avgPrice; }
+    if(sortKey==='avgAge'){ av=a.avgAge ?? -1; bv=b.avgAge ?? -1; }
+    return sortDir*(av-bv);
+  });
+
+  document.querySelectorAll('thead th').forEach(th=>{
+    th.classList.toggle('active', th.dataset.key===sortKey);
+  });
+
+  document.getElementById('tableBody').innerHTML = sorted.map(d=>`
+    <tr class="click-dong-row show-dong-detail" data-dong="${encodeURIComponent(d.fullName)}" title="눌러서 ${d.fullName} 실거래 지도를 보기">
+      <td><span class="table-map-link">${d.fullName} 📍</span></td>
+      <td>${d.count.toLocaleString()}건</td>
+      <td>${d.avgArea.toFixed(1)}</td>
+      <td>${fmtPrice(d.avgPrice)}</td>
+      <td>${d.avgAge!==null ? d.avgAge.toFixed(1)+'년' : '-'}</td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>
