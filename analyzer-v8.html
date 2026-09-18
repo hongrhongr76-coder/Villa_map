@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>가치경매 빌라 실거래가 분석기 · V8</title>
+<title>가치경매 빌라 실거래가 분석기 · V10</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
@@ -507,6 +507,29 @@
   .kakao-price-marker-dot{position:relative;z-index:2;width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);margin-top:-1px;}
   .kakao-price-marker:hover .kakao-price-marker-label,.kakao-price-marker:active .kakao-price-marker-label{transform:scale(1.08);}
   .kakao-info-overlay{display:inline-block;width:max-content;max-width:calc(100vw - 18px);}
+  .kakao-inline-popup{
+    position:absolute;
+    left:50%;
+    top:calc(100% + 2px);
+    transform:translateX(-50%);
+    z-index:99999;
+    width:max-content;
+    max-width:calc(100vw - 18px);
+    white-space:normal;
+    text-align:left;
+    cursor:default;
+  }
+  .kakao-inline-popup .kakao-info-wrap{margin:0 !important;padding:0 !important;transform:none !important;}
+  .kakao-inline-popup .kakao-info-tail{
+    left:50% !important;
+    top:-6px !important;
+    margin-left:-6px !important;
+    border-left:1px solid #E4E0D6 !important;
+    border-top:1px solid #E4E0D6 !important;
+    border-right:0 !important;
+    border-bottom:0 !important;
+    transform:rotate(45deg) !important;
+  }
   .kakao-info-wrap{position:relative;padding:0;}
   .kakao-info-tail{position:absolute;width:12px;height:12px;background:#fff;z-index:3;}
   .kakao-info-overlay.right .kakao-info-wrap{margin-left:6px;}
@@ -514,7 +537,7 @@
     left:-6px;top:22px;border-left:1px solid #E4E0D6;border-bottom:1px solid #E4E0D6;
     transform:rotate(45deg);
   }
-  .kakao-info-overlay.below .kakao-info-wrap{margin-top:6px;}
+  .kakao-info-overlay.below .kakao-info-wrap{margin-top:2px;}
   .kakao-info-overlay.below .kakao-info-tail{
     left:50%;top:-6px;margin-left:-6px;border-left:1px solid #E4E0D6;border-top:1px solid #E4E0D6;
     transform:rotate(45deg);
@@ -1305,20 +1328,29 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
 
               markerEl.addEventListener('click',(ev)=>{
                 ev.stopPropagation();
-                if(kakaoInfoOverlay) kakaoInfoOverlay.setMap(null);
+
+                // 기존 팝업 제거
+                if(kakaoInfoOverlay){
+                  kakaoInfoOverlay.setMap(null);
+                  kakaoInfoOverlay=null;
+                }
+
+                // 팝업을 '지도 좌표'가 아니라 '클릭한 실거래 마커 자체'에 직접 붙입니다.
+                // 그래서 화면 크기/확대축소와 상관없이 포인트 바로 아래에 2px 간격으로 붙습니다.
                 const infoEl=document.createElement('div');
-                const isMobilePopup=window.innerWidth<=640;
-                infoEl.className='kakao-info-overlay '+(isMobilePopup?'below':'right');
+                infoEl.className='kakao-inline-popup';
                 infoEl.innerHTML=buildKakaoTxnInfo(t,approximate);
                 infoEl.addEventListener('click',e=>e.stopPropagation());
-                kakaoInfoOverlay=new kakao.maps.CustomOverlay({
-                  position:markerPos,
-                  content:infoEl,
-                  xAnchor:isMobilePopup?0.5:0,
-                  yAnchor:isMobilePopup?0:0.12,
-                  zIndex:99999
-                });
-                kakaoInfoOverlay.setMap(kakaoMapInstance);
+
+                markerEl.appendChild(infoEl);
+
+                kakaoInfoOverlay={
+                  setMap:()=>{
+                    if(infoEl && infoEl.parentNode) infoEl.parentNode.removeChild(infoEl);
+                  }
+                };
+
+                // 클릭한 포인트를 가운데로 이동해 팝업이 화면 밖으로 잘리지 않게 합니다.
                 kakaoMapInstance.panTo(markerPos);
               });
 
