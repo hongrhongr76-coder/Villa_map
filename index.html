@@ -712,6 +712,25 @@ function processRows(raw, fileName){
   const iRoad = col('도로명');
   const iLot = col('번지');
 
+  // 국토부 엑셀 상단 검색조건의 '시도 : 서울특별시' 값을 읽어둡니다.
+  // 일부 대용량 자료는 '시군구' 셀에 시도명이 빠질 수 있어서 지도 검색용 주소에 보완합니다.
+  let sidoHint='';
+  outerSido:
+  for(let rr=0; rr<headerRowIdx; rr++){
+    for(const cell of (raw[rr]||[])){
+      const txt=String(cell ?? '').trim();
+      const m=txt.match(/^시도\s*:\s*(.+)$/);
+      if(m && m[1]){ sidoHint=m[1].trim(); break outerSido; }
+    }
+  }
+  const topRegionRe=/^(서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|울산광역시|세종특별자치시|경기도|강원특별자치도|충청북도|충청남도|전북특별자치도|전라남도|경상북도|경상남도|제주특별자치도)(\s|$)/;
+  const normalizeRegion=(value)=>{
+    let v=String(value ?? '').replace(/\s+/g,' ').trim();
+    if(!v) return '';
+    if(sidoHint && !topRegionRe.test(v)) v=sidoHint+' '+v;
+    return v.replace(/\s+/g,' ').trim();
+  };
+
   const records = [];
   let canceledCount = 0;
   for(let r = headerRowIdx+1; r < raw.length; r++){
@@ -722,7 +741,8 @@ function processRows(raw, fileName){
     const cancelVal = iCancel > -1 ? row[iCancel] : '-';
     if(cancelVal && cancelVal !== '-'){ canceledCount++; continue; }
 
-    const parts = sg.trim().split(/\s+/);
+    const regionQuery=normalizeRegion(sg);
+    const parts = regionQuery.split(/\s+/);
     if(parts.length < 2) continue;
     const dong = parts[parts.length-1];
     const gu = parts.length >= 3 ? parts[parts.length-2] : parts[0];
@@ -752,14 +772,14 @@ function processRows(raw, fileName){
       houseType: iHouseType>-1 ? row[iHouseType] : '',
       road: iRoad>-1 ? String(row[iRoad] || '').trim() : '',
       lot: iLot>-1 ? String(row[iLot] || '').trim() : '',
-      regionQuery: String(sg || '').trim(),
+      regionQuery,
       roadQuery: (iRoad>-1 && String(row[iRoad] || '').trim())
         ? (parts.slice(0,-1).join(' ')+' '+String(row[iRoad]).trim()) : '',
       lotQuery: (iLot>-1 && String(row[iLot] || '').trim())
-        ? (sg+' '+String(row[iLot]).trim()) : '',
+        ? (regionQuery+' '+String(row[iLot]).trim()) : '',
       addressQuery: (iRoad>-1 && String(row[iRoad] || '').trim())
         ? (parts.slice(0,-1).join(' ')+' '+String(row[iRoad]).trim())
-        : (sg+' '+(iLot>-1 ? String(row[iLot] || '').trim() : '')),
+        : (regionQuery+' '+(iLot>-1 ? String(row[iLot] || '').trim() : '')),
       pricePerPyeong
     });
   }
@@ -931,7 +951,7 @@ function kakaoGeocodeOnce(query){
 async function kakaoGeocodeCandidates(candidates){
   const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
   for(const q of unique){
-    const cacheKey='kakao-v12:'+q;
+    const cacheKey='kakao-v13:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
       // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
@@ -1126,6 +1146,7 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
     msg+='금액표시를 누르면 건물명·주소·전용면적·거래금액·거래일자·층수·준공일자/년도를 볼 수 있습니다.';
     if(approximateShown) msg+=` 주소 좌표를 찾지 못한 ${approximateShown.toLocaleString()}건은 점선 금액표시로 임시 배치했습니다.`;
     if(failedGroups) msg+=` 위치 확인이 안 된 주소 ${failedGroups.toLocaleString()}곳은 표시하지 않았습니다.`;
+    if(!shown && groups[0] && groups[0].candidates){ msg+=` 첫 주소 확인값: ${escapeHtml(String(groups[0].candidates.find(Boolean)||'-'))}`; }
     statusEl.textContent=msg;
     return true;
 
