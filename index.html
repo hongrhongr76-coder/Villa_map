@@ -495,6 +495,7 @@
 
 
   /* v12: 선택 동 즉시 중심이동 + 실거래 좌표 재조회 + 오래된 실패 캐시 제거 */
+  /* v14: 지도 크게 보기 개선 - 모든 선택 동에 동일 적용 */
   body.map-modal-open{overflow:hidden;}
   .txn-map-toolbar{
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;
@@ -530,37 +531,85 @@
   }
 
 
-  /* v15: 지도 상세정보 가독성 확대 + 휴대폰 파일 선택 개선 */
+
+  /* v14: 모든 선택 동 공통 - 지도/마커/상세창 크게 보기 */
+  @media (min-width:900px){
+    .txn-map-wrap{
+      width:min(1320px,calc(100vw - 36px));
+      margin-left:50%;
+      transform:translateX(-50%);
+    }
+    .txn-map-canvas,.kakao-map-canvas{
+      height:min(72vh,780px) !important;
+      min-height:620px;
+    }
+    .kakao-price-marker-label{
+      font-size:14px;
+      padding:8px 11px;
+      border-radius:10px;
+      border-width:2px;
+    }
+    .kakao-price-marker-dot{
+      width:18px;
+      height:18px;
+      border-width:3px;
+    }
+    .kakao-price-marker::before{
+      width:58px;
+      height:58px;
+      border-radius:29px;
+    }
+    .kakao-info-card{
+      width:330px;
+      max-height:430px;
+      padding:14px 15px;
+      border-radius:12px;
+    }
+    .kakao-info-title{font-size:15px;}
+    .kakao-info-sub{font-size:12px;line-height:1.45;}
+    .kakao-info-item{font-size:12.5px;line-height:1.65;}
+    .kakao-info-price{font-size:13.5px;}
+    .kakao-info-maplink{font-size:12px;}
+  }
+  @media (min-width:641px) and (max-width:899px){
+    .txn-map-canvas,.kakao-map-canvas{
+      height:68vh !important;
+      min-height:560px;
+    }
+  }
+  @media (max-width:640px){
+    .txn-map-wrap{width:auto;margin-left:0;transform:none;}
+    .txn-map-canvas,.kakao-map-canvas{
+      height:64vh !important;
+      min-height:480px;
+    }
+    .kakao-price-marker-label{font-size:13px;padding:7px 10px;}
+    .kakao-info-card{width:min(310px,84vw);max-height:56vh;padding:12px 13px;}
+    .kakao-info-title{font-size:14px;}
+    .kakao-info-item{font-size:12px;line-height:1.6;}
+  }
+
+  /* v16: v14 지도/실거래 로직 유지 + 상세팝업/모바일 파일선택만 개선 */
   .mobile-file-picker{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    margin-top:16px;
-    padding:12px 18px;
+    margin-top:14px;
+    padding:11px 16px;
     border-radius:10px;
     background:#E8742C;
     color:#fff;
     font-size:14px;
     font-weight:800;
     cursor:pointer;
-    box-shadow:0 3px 10px rgba(0,0,0,.10);
   }
   .mobile-selected-file{
-    margin-top:9px;
+    margin-top:8px;
     font-size:12.5px;
     color:#6E7687;
     word-break:break-all;
   }
 
-  /* 지도 금액 마커 */
-  .kakao-price-marker-label{
-    font-size:15px !important;
-    padding:8px 11px !important;
-    min-width:34px;
-    text-align:center;
-  }
-
-  /* 거래 상세 팝업 - 데스크톱 */
   .kakao-info-card{
     width:390px !important;
     max-width:calc(100vw - 40px) !important;
@@ -583,54 +632,21 @@
     line-height:1.8 !important;
     padding:10px 0 !important;
   }
-  .kakao-info-price{
-    font-size:16px !important;
-  }
+  .kakao-info-price{font-size:16px !important;}
   .kakao-info-maplink{
     font-size:14px !important;
     margin-top:8px !important;
-    padding:4px 0 !important;
-  }
-
-  /* 전체화면에서도 동일하게 크게 */
-  .txn-map-wrap.map-fullscreen .kakao-info-card{
-    width:min(420px,88vw) !important;
-    max-height:68dvh !important;
   }
 
   @media(max-width:640px){
-    .wrap{padding-left:12px !important;padding-right:12px !important;}
-    .upload{padding:28px 14px !important;}
-    .upload strong{font-size:16px !important;}
-    .upload span{font-size:13px !important;display:block;margin-top:4px;}
     .mobile-file-picker{
       display:flex;
       width:100%;
       box-sizing:border-box;
-      font-size:16px;
       padding:14px 16px;
-      margin-top:16px;
+      font-size:16px;
     }
-    .mobile-selected-file{
-      font-size:13px;
-      line-height:1.45;
-    }
-
-    .kakao-map-canvas,
-    .txn-map-canvas{
-      height:64dvh !important;
-      min-height:460px !important;
-    }
-    .kakao-price-marker-label{
-      font-size:14px !important;
-      padding:8px 10px !important;
-    }
-    .kakao-price-marker::before{
-      width:60px !important;
-      height:60px !important;
-      border-radius:30px !important;
-    }
-
+    .mobile-selected-file{font-size:13px;line-height:1.45;}
     .kakao-info-card{
       width:min(340px,88vw) !important;
       max-width:88vw !important;
@@ -639,10 +655,7 @@
     }
     .kakao-info-title{font-size:17px !important;}
     .kakao-info-sub{font-size:13.5px !important;}
-    .kakao-info-item{
-      font-size:14.5px !important;
-      line-height:1.75 !important;
-    }
+    .kakao-info-item{font-size:14.5px !important;line-height:1.75 !important;}
     .kakao-info-price{font-size:16px !important;}
     .kakao-info-maplink{font-size:13.5px !important;}
   }
@@ -803,11 +816,6 @@ document.addEventListener('click', (e)=>{
 });
 
 function handleFile(file){
-  const lowerName=String(file && file.name || '').toLowerCase();
-  if(!lowerName.endsWith('.xlsx') && !lowerName.endsWith('.xls')){
-    alert('엑셀 파일(.xlsx 또는 .xls)을 선택해주세요.');
-    return;
-  }
   const reader = new FileReader();
   reader.onload = (e)=>{
     try{
@@ -1314,7 +1322,7 @@ function toggleDongMapFullscreen(force){
   wrap.classList.toggle('map-fullscreen',next);
   document.body.classList.toggle('map-modal-open',next);
   const btn=document.getElementById('expandDongMapBtn');
-  if(btn) btn.textContent=next?'✕ 전체화면 닫기':'⛶ 실거래 전체화면';
+  if(btn) btn.textContent=next?'✕ 큰 지도 닫기':'⛶ 지도 크게 보기';
   setTimeout(()=>{
     try{
       if(kakaoMapInstance){
@@ -1815,7 +1823,7 @@ function buildRichDetail(d){
     <div class="txn-map-wrap">
       <div class="txn-map-title">🗺 ${d.fullName} 동별 실거래 지도</div>
       <div class="txn-map-toolbar">
-        <button type="button" class="primary" id="expandDongMapBtn">⛶ 실거래 전체화면</button>
+        <button type="button" class="primary" id="expandDongMapBtn">⛶ 지도 크게 보기</button>
         <a href="${kakaoMapUrl(d.fullName)}" target="_blank" rel="noopener noreferrer">📍 카카오맵 열기 ↗</a>
       </div>
       <div class="txn-map-note">금액표시 하나가 실거래 1건입니다. 금액을 누르면 건물명 · 주소 · 전용면적 · 거래금액 · 층수 · 준공일자/년도 · 거래일자를 자세히 볼 수 있습니다.</div>
