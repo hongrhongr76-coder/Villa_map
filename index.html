@@ -846,6 +846,10 @@ let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
 let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
 let currentKakaoMapPoints=[];
 
+// 지도 좌표 캐시 / JSONP 콜백 번호
+const geoCache = new Map();
+let geoJsonpSeq = 0;
+
 function naverMapUrl(place){
   return 'https://map.naver.com/p/search/' + encodeURIComponent(place);
 }
@@ -951,7 +955,7 @@ function kakaoGeocodeOnce(query){
 async function kakaoGeocodeCandidates(candidates){
   const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
   for(const q of unique){
-    const cacheKey='kakao-v13:'+q;
+    const cacheKey='kakao-v14:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
       // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
