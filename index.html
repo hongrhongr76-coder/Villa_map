@@ -1010,6 +1010,10 @@ let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
 let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
 let currentKakaoMapPoints=[];
 
+// v18: 지도 주소검색 공용 캐시/JSONP 카운터
+const geoCache = new Map();
+let geoJsonpSeq = 0;
+
 function naverMapUrl(place){
   return 'https://map.naver.com/p/search/' + encodeURIComponent(place);
 }
@@ -1115,7 +1119,7 @@ function kakaoGeocodeOnce(query){
 async function kakaoGeocodeCandidates(candidates){
   const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
   for(const q of unique){
-    const cacheKey='kakao-v17:'+q;
+    const cacheKey='kakao-v18:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
       // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
@@ -1215,7 +1219,11 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
       const g=groups[i];
       try{
         let geo=null;
-        try{ geo=await kakaoGeocodeCandidates(g.candidates); }catch(err){}
+        try{
+          geo=await kakaoGeocodeCandidates(g.candidates);
+        }catch(err){
+          console.error('Kakao geocode error:', err);
+        }
 
         let approximate=false;
         if(!geo && dongCenter){
