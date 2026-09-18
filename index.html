@@ -494,7 +494,7 @@
   @media(max-width:640px){.kakao-map-canvas{height:390px}.kakao-map-key-row{flex-wrap:wrap}.kakao-map-key-row input{flex:1 1 100%}}
 
 
-  /* v10: 카카오맵 안정화 + 개별 주소 오류 격리 + 느린 예비지도 차단 */
+  /* v12: 선택 동 즉시 중심이동 + 실거래 좌표 재조회 + 오래된 실패 캐시 제거 */
   body.map-modal-open{overflow:hidden;}
   .txn-map-toolbar{
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 10px;
@@ -752,6 +752,7 @@ function processRows(raw, fileName){
       houseType: iHouseType>-1 ? row[iHouseType] : '',
       road: iRoad>-1 ? String(row[iRoad] || '').trim() : '',
       lot: iLot>-1 ? String(row[iLot] || '').trim() : '',
+      regionQuery: String(sg || '').trim(),
       roadQuery: (iRoad>-1 && String(row[iRoad] || '').trim())
         ? (parts.slice(0,-1).join(' ')+' '+String(row[iRoad]).trim()) : '',
       lotQuery: (iLot>-1 && String(row[iLot] || '').trim())
@@ -930,17 +931,36 @@ function kakaoGeocodeOnce(query){
 async function kakaoGeocodeCandidates(candidates){
   const unique=[...new Set((candidates||[]).map(v=>String(v||'').trim()).filter(Boolean))];
   for(const q of unique){
-    const cacheKey='kakao:'+q;
+    const cacheKey='kakao-v12:'+q;
     if(geoCache.has(cacheKey)){
       const cached=geoCache.get(cacheKey);
-      if(cached) return cached;
-      continue;
+      // 성공 좌표만 캐시로 사용합니다. 예전 실패(null)는 다시 조회합니다.
+      if(cached && isFinite(Number(cached.lat)) && isFinite(Number(cached.lon))) return cached;
+      geoCache.delete(cacheKey);
     }
     const hit=await kakaoGeocodeOnce(q);
-    geoCache.set(cacheKey,hit);
-    if(hit) return hit;
+    if(hit){
+      geoCache.set(cacheKey,hit);
+      return hit;
+    }
   }
   return null;
+}
+
+async function findSelectedDongSeed(d, groups){
+  const firstGroup=(groups||[]).find(g=>g && g.items && g.items.length);
+  const first=firstGroup ? firstGroup.items[0] : null;
+  const region=first && first.regionQuery ? first.regionQuery : '';
+  const candidates=[];
+
+  // 1순위: 실제 첫 거래 주소. 정확한 화곡동/중곡동 위치로 바로 이동시킵니다.
+  if(firstGroup && firstGroup.candidates) candidates.push(...firstGroup.candidates);
+  // 2순위: 국토부 시군구 원문(예: 서울특별시 강서구 화곡동)
+  if(region) candidates.push(region);
+  // 3순위: 화면에 표시되는 구+동
+  candidates.push(d.fullName);
+
+  return kakaoGeocodeCandidates(candidates);
 }
 
 function fitKakaoMapToMarkers(map, points){
@@ -991,9 +1011,17 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
     let shown=0, approximateShown=0, completed=0, failedGroups=0;
     const points=[];
 
-    // 동 중심은 한 번만 찾습니다. 개별 주소 실패 시에만 보조 위치로 사용합니다.
+    // 먼저 실제 선택 동의 첫 거래 주소를 찾아 지도를 즉시 해당 동으로 이동합니다.
+    // 기본 서울시청 좌표가 화면에 남아 "다른 동"처럼 보이는 문제를 막습니다.
     let dongCenter=null;
-    try{ dongCenter=await kakaoGeocodeCandidates([d.fullName]); }catch(err){}
+    try{
+      statusEl.textContent=`${d.fullName} 위치를 찾는 중...`;
+      dongCenter=await findSelectedDongSeed(d,groups);
+      if(dongCenter){
+        kakaoMapInstance.setCenter(new kakao.maps.LatLng(dongCenter.lat,dongCenter.lon));
+        kakaoMapInstance.setLevel(5);
+      }
+    }catch(err){}
 
     // 너무 많은 동시 요청은 오히려 실패를 늘릴 수 있어 6개로 제한합니다.
     const concurrency=Math.min(6,Math.max(3,Number(navigator.hardwareConcurrency)||4));
@@ -1190,7 +1218,7 @@ function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 function loadGeoCache(){
   try{
-    const saved = JSON.parse(localStorage.getItem('villaGeoCacheV2') || '{}');
+    const saved = JSON.parse(localStorage.getItem('villaGeoCacheV3') || '{}');
     for(const [k,v] of Object.entries(saved)) geoCache.set(k,v);
   }catch(err){}
 }
@@ -1198,7 +1226,7 @@ function saveGeoCache(){
   try{
     const obj={};
     for(const [k,v] of geoCache.entries()) obj[k]=v;
-    localStorage.setItem('villaGeoCacheV2', JSON.stringify(obj));
+    localStorage.setItem('villaGeoCacheV3', JSON.stringify(obj));
   }catch(err){}
 }
 loadGeoCache();
@@ -1363,9 +1391,9 @@ async function renderDongTxnMap(d){
   const txns=allRecords.filter(r=>r.fullName===d.fullName).sort((a,b)=>(b.month-a.month)||((Number(b.day)||0)-(Number(a.day)||0)));
   const groupedMap=new Map();
   for(const t of txns){
-    const key=(t.roadQuery||t.lotQuery||t.addressQuery||t.fullName).trim();
+    const key=(t.lotQuery||t.roadQuery||t.addressQuery||t.fullName).trim();
     const label=t.road?`${t.gu} ${t.dong} · ${t.road}`:(t.lot?`${t.gu} ${t.dong} ${t.lot}`:t.fullName);
-    if(!groupedMap.has(key)) groupedMap.set(key,{key,label,items:[],candidates:[t.roadQuery,t.lotQuery,(t.building?`${t.fullName} ${t.building}`:''),t.addressQuery,t.fullName]});
+    if(!groupedMap.has(key)) groupedMap.set(key,{key,label,items:[],candidates:[t.lotQuery,t.roadQuery,t.addressQuery,(t.building?`${t.regionQuery||t.fullName} ${t.building}`:''),t.regionQuery,t.fullName]});
     groupedMap.get(key).items.push(t);
   }
   const groups=[...groupedMap.values()];
