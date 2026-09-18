@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>가치경매 빌라 실거래가 분석기 · V10</title>
+<title>가치경매 빌라 실거래가 분석기 · V8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
@@ -506,6 +506,9 @@
   }
   .kakao-price-marker-dot{position:relative;z-index:2;width:9px;height:9px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);margin-top:-1px;}
   .kakao-price-marker:hover .kakao-price-marker-label,.kakao-price-marker:active .kakao-price-marker-label{transform:scale(1.08);}
+  .kakao-price-marker.active{z-index:999999 !important;}
+  .kakao-price-marker.active .kakao-price-marker-label,
+  .kakao-price-marker.active .kakao-price-marker-dot{position:relative;z-index:999999 !important;}
   .kakao-info-overlay{display:inline-block;width:max-content;max-width:calc(100vw - 18px);}
   .kakao-inline-popup{
     position:absolute;
@@ -1072,7 +1075,7 @@ function txnAddress(t){
 }
 
 
-let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[];
+let kakaoMapInstance=null, kakaoInfoOverlay=null, kakaoOverlays=[], kakaoActiveMarkerOverlay=null, kakaoActiveMarkerEl=null;
 let kakaoMapLoadingPromise=null, kakaoGeocoder=null, kakaoPlaces=null;
 let currentKakaoMapPoints=[];
 
@@ -1318,25 +1321,35 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
               markerEl.innerHTML=`<div class="kakao-price-marker-label" style="background:${color};${approximate?'border-style:dashed;':''}">${shortMapPrice(t.price)}</div><div class="kakao-price-marker-dot" style="background:${color}"></div>`;
 
               const markerPos=new kakao.maps.LatLng(pos.lat,pos.lon);
+              const baseZIndex=1000+j;
               const overlay=new kakao.maps.CustomOverlay({
                 position:markerPos,
                 content:markerEl,
                 yAnchor:1,
-                zIndex:1000+j
+                zIndex:baseZIndex
               });
               overlay.setMap(kakaoMapInstance);
 
               markerEl.addEventListener('click',(ev)=>{
                 ev.stopPropagation();
 
-                // 기존 팝업 제거
+                // 기존 팝업 제거 + 이전 활성 마커 원복
                 if(kakaoInfoOverlay){
                   kakaoInfoOverlay.setMap(null);
                   kakaoInfoOverlay=null;
                 }
 
+                if(kakaoActiveMarkerOverlay){ try{ kakaoActiveMarkerOverlay.setZIndex(kakaoActiveMarkerOverlay.__baseZIndex || 1000); }catch(e){} }
+                if(kakaoActiveMarkerEl){ kakaoActiveMarkerEl.classList.remove('active'); }
+                kakaoActiveMarkerOverlay=overlay;
+                kakaoActiveMarkerEl=markerEl;
+
+                // 현재 클릭한 마커를 최상단으로 올려서 팝업 위로 다른 실거래 포인트가 겹치지 않게 함
+                overlay.__baseZIndex=baseZIndex;
+                try{ overlay.setZIndex(999999); }catch(e){}
+                markerEl.classList.add('active');
+
                 // 팝업을 '지도 좌표'가 아니라 '클릭한 실거래 마커 자체'에 직접 붙입니다.
-                // 그래서 화면 크기/확대축소와 상관없이 포인트 바로 아래에 2px 간격으로 붙습니다.
                 const infoEl=document.createElement('div');
                 infoEl.className='kakao-inline-popup';
                 infoEl.innerHTML=buildKakaoTxnInfo(t,approximate);
@@ -1347,6 +1360,10 @@ async function renderKakaoDongMap(d, groups, statusEl, progressEl){
                 kakaoInfoOverlay={
                   setMap:()=>{
                     if(infoEl && infoEl.parentNode) infoEl.parentNode.removeChild(infoEl);
+                    markerEl.classList.remove('active');
+                    try{ overlay.setZIndex(baseZIndex); }catch(e){}
+                    if(kakaoActiveMarkerOverlay===overlay) kakaoActiveMarkerOverlay=null;
+                    if(kakaoActiveMarkerEl===markerEl) kakaoActiveMarkerEl=null;
                   }
                 };
 
