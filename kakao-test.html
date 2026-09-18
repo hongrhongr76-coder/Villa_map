@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>카카오맵 연결 진단</title>
+<style>
+body{font-family:Arial,'Malgun Gothic',sans-serif;margin:0;background:#f5f6f8;color:#182033}
+.wrap{max-width:760px;margin:30px auto;padding:20px}
+.card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+h1{font-size:22px;margin:0 0 8px}
+p{color:#667085}
+#status{padding:14px;border-radius:10px;background:#eef2f6;font-weight:700;margin:16px 0}
+.log{font-family:Consolas,monospace;font-size:13px;white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:14px;border-radius:10px;min-height:170px}
+#map{height:360px;margin-top:16px;border-radius:12px;overflow:hidden;background:#e5e7eb}
+.ok{background:#e8f7ee!important;color:#16794a}
+.bad{background:#fff0f0!important;color:#b42318}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>카카오맵 연결 진단</h1>
+    <p>이 페이지는 카카오맵 SDK가 실제로 로드되는지 확인합니다.</p>
+    <div id="status">진단 시작 중...</div>
+    <div id="log" class="log"></div>
+    <div id="map"></div>
+  </div>
+</div>
+
+<script>
+const KAKAO_KEY='a6474ae1c2b07f004d0ebc5dd68d98f6';
+const statusEl=document.getElementById('status');
+const logEl=document.getElementById('log');
+function log(msg){ logEl.textContent += msg + "\n"; }
+function doneOk(msg){ statusEl.textContent=msg; statusEl.className='ok'; }
+function doneBad(msg){ statusEl.textContent=msg; statusEl.className='bad'; }
+
+log('현재 주소: '+location.href);
+log('현재 origin: '+location.origin);
+log('브라우저: '+navigator.userAgent);
+
+const s=document.createElement('script');
+s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(KAKAO_KEY)+'&autoload=false&libraries=services';
+s.async=true;
+
+s.onload=()=>{
+  log('1) SDK 파일 로드: 성공');
+  try{
+    if(!window.kakao || !window.kakao.maps){
+      log('2) window.kakao.maps: 없음');
+      doneBad('SDK 파일은 왔지만 kakao.maps 객체가 없습니다.');
+      return;
+    }
+    log('2) window.kakao.maps: 있음');
+
+    kakao.maps.load(()=>{
+      try{
+        log('3) kakao.maps.load 콜백: 실행됨');
+        log('4) services 라이브러리: '+(kakao.maps.services ? '있음' : '없음'));
+
+        const map=new kakao.maps.Map(document.getElementById('map'),{
+          center:new kakao.maps.LatLng(37.5665,126.9780),
+          level:5
+        });
+        log('5) 지도 생성: 성공');
+
+        if(kakao.maps.services){
+          const geocoder=new kakao.maps.services.Geocoder();
+          geocoder.addressSearch('서울특별시 강남구 역삼동',(result,st)=>{
+            log('6) 주소검색 상태: '+st);
+            if(st===kakao.maps.services.Status.OK && result && result[0]){
+              const pos=new kakao.maps.LatLng(Number(result[0].y),Number(result[0].x));
+              map.setCenter(pos);
+              new kakao.maps.Marker({map,position:pos});
+              doneOk('정상입니다. 카카오맵 SDK와 주소검색이 모두 작동합니다.');
+              log('7) 주소검색: 성공');
+            }else{
+              doneBad('지도는 열렸지만 주소검색이 실패했습니다.');
+            }
+          });
+        }else{
+          doneBad('지도 SDK는 열렸지만 services 라이브러리가 없습니다.');
+        }
+      }catch(e){
+        log('콜백 내부 오류: '+(e && e.stack ? e.stack : e));
+        doneBad('카카오맵 실행 중 오류가 발생했습니다.');
+      }
+    });
+  }catch(e){
+    log('SDK 처리 오류: '+(e && e.stack ? e.stack : e));
+    doneBad('SDK 처리 중 오류가 발생했습니다.');
+  }
+};
+
+s.onerror=(e)=>{
+  log('1) SDK 파일 로드: 실패');
+  log('script error event: '+String(e));
+  doneBad('카카오맵 SDK 파일 자체를 불러오지 못했습니다.');
+};
+
+document.head.appendChild(s);
+
+setTimeout(()=>{
+  if(!window.kakao || !window.kakao.maps){
+    log('15초 경과: kakao.maps 없음');
+    if(!statusEl.classList.contains('ok')) doneBad('15초 동안 카카오맵 SDK 응답이 없습니다.');
+  }
+},15000);
+</script>
+</body>
+</html>
